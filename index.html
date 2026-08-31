@@ -22,7 +22,7 @@
         color:#2E7D32;
     }
     .mode-t3 #mode-indicator{
-        color:#D4AF37;
+        color:var(--accent);
     }
     /* T1 specific text styling */
     .mode-t1 .song-artist { font-size: 0.85rem;   /* Noticeably smaller than title */ font-style: italic; color: var(--ink-light); margin-top: 2px;      /* Slight breathing room under title */ }
@@ -162,7 +162,7 @@
     }    
 
     .filter-pill-active {
-        background: #d4af37; /* Gold to show it's "On" */
+        background: var(--accent); /* Gold to show it's "On" */
         color: white;
         padding: 6px 12px;
         border-radius: 20px;
@@ -314,22 +314,75 @@
         --ink: #111111;
         --ink-light: #555555;
         --border: #E0E0E0;
-        --accent: #E2B714;
+
+        /* Gold. The app carried two: #E2B714 here, and #D4AF37 hardcoded 33 times
+           across the drawers, dialogs and modal. #D4AF37 is the intended one --
+           `var(--accent, #D4AF37)` in the setlist toggle names it as the fallback.
+           Everything now routes through this one variable, so switching the app's
+           gold is a one-line change here. */
+        --accent: #D4AF37;
         --accent-dark: #B89000;
+        --gold: var(--accent);
+        --gold-dim: rgba(212, 175, 55, .15);
+        --gold-ink: #7A5B00;   /* gold dark enough to read as text on --gold-dim */
+
         --pop: #D34343;
         --hymn: #A67C52;
         --original: #6A4C93;
         --response: #4A7C59;
         --esv: #2A5A8C;
         --mode-color: #2E7D32;
-        
+
+        /* Previously used without ever being declared, so every rule referencing
+           them was dropped at computed-value time. The most visible casualty was
+           the gold stats badge on an expanded T1 card, which fell back to the
+           plain grey .badge styling. */
+        --ink-mid: #6E6E6E;
+        --card-bg: rgba(255, 255, 255, .06);   /* subtle raised surface on the dark modal chrome */
+
+        /* These two were already safe -- every call site passed a fallback
+           (var(--header-height, 72px)). Declared here so the value lives in one
+           place. Kept at the existing fallbacks so nothing shifts. */
+        --header-bg: #1A1A1A;
+        --header-height: 72px;
+        --search-height: 70px;
+
+        /* Tempo: one definition for every surface. The card tags previously had
+           `medium` and `slow` wearing each other's backgrounds -- a gold pill with
+           blue text and a blue pill with gold text -- while the detail modal used a
+           third, unrelated palette (red / yellow / green). Fast stays red, medium
+           takes the gold both the card text and the modal already implied, and slow
+           takes the cool blue.
+           `-ink` is text on the tint and is chosen to clear WCAG AA; `-tint` and
+           `-edge` are the pill background and border; the base is the solid fill
+           used by the detail modal. */
+        --tempo-fast: #C0392B;
+        --tempo-fast-ink: #A32E2E;
+        --tempo-fast-tint: rgba(211, 67, 67, .10);
+        --tempo-fast-edge: rgba(211, 67, 67, .32);
+
+        --tempo-medium: #D4AF37;
+        --tempo-medium-ink: #7A5B00;
+        --tempo-medium-tint: rgba(212, 175, 55, .16);
+        --tempo-medium-edge: rgba(212, 175, 55, .45);
+
+        --tempo-slow: #2A5A8C;
+        --tempo-slow-ink: #2A5A8C;
+        --tempo-slow-tint: rgba(42, 90, 140, .10);
+        --tempo-slow-edge: rgba(42, 90, 140, .30);
+
+        /* Keyboard focus. Gold ring for the app's own look, dark halo behind it so
+           the ring stays visible on white cards and on the near-black chrome. */
+        --focus-ring: var(--accent);
+        --focus-halo: rgba(0, 0, 0, .35);
+
         /* Unified glow variables */
-        --glow-bg: rgba(226,183,20,.15);
+        --glow-bg: rgba(212,175,55,.15);
         --glow-border: var(--accent);
         --glow-text: var(--ink);
-        --glow-shadow: 
-            0 0 0 1px rgba(226,183,20,.35),
-            0 0 10px rgba(226,183,20,.25);
+        --glow-shadow:
+            0 0 0 1px rgba(212,175,55,.35),
+            0 0 10px rgba(212,175,55,.25);
         --glow-scale: 1.05;
         --glow-weight: 800;
     }
@@ -485,9 +538,14 @@
         padding: 3px 8px;
     }
 
-    .tag-fast { color: #b85c5c !important; background: rgba(211,67,67,.08) !important; border-color: rgba(211,67,67,.28) !important; }
-    .tag-medium { color: #8c7440 !important; background: rgba(42,90,140,.08) !important; border-color: rgba(42,90,140,.25) !important; }
-    .tag-slow { color: #4e7192 !important; background: rgba(184,144,0,.08) !important; border-color: rgba(184,144,0,.25) !important; }
+    /* `.tag` further down sets background/colour with !important, so a bare
+       `.tag-fast` (same specificity, earlier in the file) loses to it. These are
+       written as `.tag.tag-fast` so they win on specificity instead of on source
+       order -- previously a second, identical copy of these rules sat lower in
+       the file and that placement was the only reason tempo colours showed. */
+    .tag.tag-fast   { color: var(--tempo-fast-ink) !important;   background: var(--tempo-fast-tint) !important;   border-color: var(--tempo-fast-edge) !important; }
+    .tag.tag-medium { color: var(--tempo-medium-ink) !important; background: var(--tempo-medium-tint) !important; border-color: var(--tempo-medium-edge) !important; }
+    .tag.tag-slow   { color: var(--tempo-slow-ink) !important;   background: var(--tempo-slow-tint) !important;   border-color: var(--tempo-slow-edge) !important; }
 
     /* Active speed filter feedback */
     .tag-fast.active,
@@ -583,16 +641,16 @@
     }           
     
     #adminToggle.active-admin {
-        background-color: #E2B714 !important; /* Gold highlight */
+        background-color: var(--accent) !important; /* Gold highlight */
         color: #1a1a1a !important;
         border-color: white !important;
         font-weight: bold;
     }
     /* This class will be added/removed by JavaScript */
     .active-admin-highlight {
-        background-color: #E2B714 !important; /* Gold/Yellow */
+        background-color: var(--accent) !important; /* Gold/Yellow */
         color: #000 !important;
-        border-color: #E2B714 !important;
+        border-color: var(--accent) !important;
         font-weight: bold !important;
     }
     .artist-link {
@@ -776,8 +834,8 @@
     .mode-option:active{ background:rgba(255,255,255,.08); }
     .mode-option.active-t1{ color:#4A90E2; }
     .mode-option.active-t2{ color:#2E7D32; }
-    .mode-option.active-t3{ color:#D4AF37; }
-    .mode-option.setlist{ color:#D4AF37; }
+    .mode-option.active-t3{ color:var(--accent); }
+    .mode-option.setlist{ color:var(--accent); }
     .mode-option::before{ content:"●"; margin-right:10px; opacity:.85; }
     
          
@@ -813,6 +871,16 @@
         background: none;
     }
 
+    /* outline:none above strips the keyboard focus ring. :focus-visible puts a
+       visible one back for keyboard and assistive-tech users only -- it does not
+       show on mouse or touch, so the look is unchanged for everyone else. */
+    #filter-drawer button:focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px var(--focus-halo);
+        border-radius: 8px;
+    }
+
     /* Ensure the drawer container doesn't squash them */
     #drawer-key-chips, 
     #drawer-tag-chips {
@@ -834,6 +902,16 @@
         color: var(--ink) !important;
         border-radius: 4px !important;
         font-family: monospace;
+    }
+
+    /* The play-history badge on an expanded T1 card. It used inline styles, but
+       `.badge` above sets background and colour with !important, and an important
+       declaration in a stylesheet beats a plain inline one -- so the badge rendered
+       plain grey. As a class it can match that !important and win on specificity. */
+    .badge.stats-badge {
+        background: var(--gold-dim) !important;
+        color: var(--gold-ink) !important;
+        border: 1px solid var(--accent) !important;
     }
 
     /* Base Tag (Fast, Medium, Original, etc) */
@@ -923,6 +1001,14 @@
         outline: none;
         flex-grow: 1; /* Ensures the input takes up all space not used by the X */
         min-width: 0; /* Prevents the input from pushing the X off-screen */
+    }
+
+    /* Same reasoning as the drawer buttons. The ring sits on the pill container
+       rather than the bare input so it traces the control the user sees. */
+    #search-pill-container:focus-within {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px var(--focus-halo);
     }
 
     #search-clear {
@@ -1076,8 +1162,8 @@
     }
     .reset-filters-btn:hover {
         background: #fafafa;
-        border-color: #d4af37; /* Subtle gold hint on hover */
-        color: #d4af37;
+        border-color: var(--accent); /* Subtle gold hint on hover */
+        color: var(--accent);
     }
     .reset-filters-btn:active {
         background: #f0f0f0;
@@ -1296,9 +1382,8 @@
     /* 3. Speed Tags Magic */
     /* Ensure T1 and T2 speed badges share the exact same 'DNA' */
         /* Unified Speed Tags */
-    .tag-fast { color: #b85c5c !important; background: rgba(211,67,67,.08) !important; border-color: rgba(211,67,67,.28) !important; }
-    .tag-medium { color: #8c7440 !important; background: rgba(42,90,140,.08) !important; border-color: rgba(42,90,140,.25) !important; }
-    .tag-slow { color: #4e7192 !important; background: rgba(184,144,0,.08) !important; border-color: rgba(184,144,0,.25) !important; }
+    /* The tempo tag colours used to be repeated here verbatim. They live in
+       02-tokens.css now; duplicating them only made the two copies drift. */
     /* Hide the duplicate compact-only speed tag when expanded */
    
     .mode-t1 .song-card.expanded .card-right .tag {
@@ -1407,21 +1492,21 @@
 
     /* Setlist Visual Aesthetic */
     .song-card.in-setlist {
-        border: 2px solid #d4af37 !important;
+        border: 2px solid var(--accent) !important;
         box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
     }
         /* Hide the favorite filter by default */
     .favorite-filter-btn {
         display: none; /* Hidden until a song is favorited */
-        border: 1px solid #d4af37;
-        color: #d4af37;
+        border: 1px solid var(--accent);
+        color: var(--accent);
         background: transparent;
         transition: all 0.2s ease;
     }
     /* The "Active" state when selected */
     .favorite-filter-btn.active {
         display: inline-block;
-        background-color: #d4af37 !important;
+        background-color: var(--accent) !important;
         color: white !important;
         box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
     }
@@ -1540,7 +1625,7 @@
         font-family: 'DM Sans', sans-serif;
         font-size: 0.75rem;
         text-transform: uppercase;
-        color: #d4af37;
+        color: var(--accent);
         margin: 0 0 6px 0;
         letter-spacing: 0.05em;
         text-align: center;
@@ -1626,7 +1711,7 @@
         margin: 0;
         font-family: 'Playfair Display', serif;
         font-size: 1.5rem;
-        color: #D4AF37;
+        color: var(--accent);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1717,7 +1802,7 @@
         font-weight: 700;
         padding: 3px 6px;
         border-radius: 8px;
-        border: 1.5px solid #D4AF37;
+        border: 1.5px solid var(--accent);
         background: #fffbe6;
         color: #8a6800;
         cursor: pointer;
@@ -1727,7 +1812,7 @@
         appearance: none;
         text-align: center;
     }
-    .slb-key-select:focus { outline: 2px solid #D4AF37; }
+    .slb-key-select:focus { outline: 2px solid var(--accent); }
     /* Up/down reorder buttons */
     .slb-arrows {
         display: flex;
@@ -1786,7 +1871,7 @@
     .slb-btn:active { transform: scale(0.97); }
     .slb-btn.primary { background: var(--ink); color: white; }
     .slb-btn.secondary { background: #f0f0f0; color: var(--ink); }
-    .slb-btn.gold { background: #D4AF37; color: var(--ink); }
+    .slb-btn.gold { background: var(--accent); color: var(--ink); }
     .slb-btn:disabled { opacity: 0.4; cursor: default; }
 
     /* Setlist Builder: Left-Aligned Arrows */
@@ -1822,7 +1907,7 @@
     }
 
     .slb-tab.active {
-        background: #D4AF37;        
+        background: var(--accent);        
         font-weight: bold;
     }
 
@@ -1853,9 +1938,9 @@
     .slb-toggle-btn.active {
         opacity: 1;
         font-weight: bold;
-        background: var(--accent, #D4AF37);
+        background: var(--accent);
         color: #000;
-        border-color: var(--accent, #D4AF37);
+        border-color: var(--accent);
         box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
         transform: scale(1.08);
     }
@@ -1980,18 +2065,21 @@
         color: #333;
     }
 
+    /* Solid fills here rather than tints, but the same three hues as the card
+       tags. This block used to be an unrelated palette -- red / yellow / green --
+       so a song showed a blue-ish #slow on its card and a green one in the modal. */
     .detail-tag.tag-fast {
-        background-color: #ff6b6b;
+        background-color: var(--tempo-fast);
         color: white;
     }
 
     .detail-tag.tag-medium {
-        background-color: #ffd93d;
-        color: #333;
+        background-color: var(--tempo-medium);
+        color: #1A1A1A;
     }
 
     .detail-tag.tag-slow {
-        background-color: #6bcf7f;
+        background-color: var(--tempo-slow);
         color: white;
     }
 
@@ -2066,7 +2154,7 @@
     }
     #fs-preview h2 {
         font-family: 'Playfair Display', serif;
-        color: #D4AF37;
+        color: var(--accent);
         margin: 0 0 30px 0;
         font-size: 2rem;
         text-align: center;
@@ -2093,11 +2181,11 @@
         text-align: left;
     }
     .fs-num { color: rgba(255,255,255,0.4); font-size: 1rem; }
-    .fs-key { color: #D4AF37; font-weight: bold; }
+    .fs-key { color: var(--accent); font-weight: bold; }
     .fs-title { font-weight: 400; }
     .fs-note { color: #aaa; font-style: italic; font-size: 1rem; margin-left: 8px; }
     .fs-line-1 { font-weight: bold; font-size: 1.2em; display: flex; gap: 0.3em; align-items: baseline; }
-    .fs-line-2 { color: #D4AF37; margin-left: 1.2em; margin-top: 0.2em; font-size: 1.0em; display: flex; gap: 1em; }
+    .fs-line-2 { color: var(--accent); margin-left: 1.2em; margin-top: 0.2em; font-size: 1.0em; display: flex; gap: 1em; }
     .fs-line-3 { opacity: 0.7; margin-left: 1.2em; margin-top: 0.1em; font-size: 0.8em; }
     /* --- FULLSCREEN PREVIEW THEMES --- */
 
@@ -2108,7 +2196,7 @@
         color: #eeeeee;
     }
     #fs-preview.theme-dark #fs-title { color: #ffffff; }
-    #fs-preview.theme-dark .fs-note-accent { color: #D4AF37; }
+    #fs-preview.theme-dark .fs-note-accent { color: var(--accent); }
 
     /* 2. Paper (Light) - Forced Override */
     #fs-preview.theme-light {
@@ -2123,11 +2211,11 @@
     /* 3. Royal (Gold) */
     #fs-preview.theme-gold {
         background: #1a1a1a;
-        color: #d4af37;
+        color: var(--accent);
     }
-    #fs-preview.theme-gold #fs-title { color: #D4AF37; }
+    #fs-preview.theme-gold #fs-title { color: var(--accent); }
     #fs-preview.theme-gold .fs-line-1 { color: #f1d592; font-weight: bold; }
-    #fs-preview.theme-gold .fs-note-accent { color: #D4AF37; }
+    #fs-preview.theme-gold .fs-note-accent { color: var(--accent); }
     #fs-preview.theme-gold .fs-row { border-bottom-color: rgba(212, 175, 55, 0.2); }
     
     /* =========================================
@@ -2184,6 +2272,14 @@
         border-color: var(--accent); /* Or your primary theme color */
         box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
     }
+
+    /* The rule above replaces the ring with a 5%-black shadow, which is close to
+       invisible. Keyboard users get a real one. */
+    #shareModal select:focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px var(--focus-halo);
+    }
     .share-header {
         background: var(--ink);
         color: white;
@@ -2198,7 +2294,7 @@
         margin: 0;
         line-height: 1.2;
         font-size: 1.5rem; /* Matched to SB Modal */
-        color: #D4AF37; /* Royal Gold */
+        color: var(--accent); /* Royal Gold */
     }
     .share-body { 
         padding: 16px 20px; 
@@ -2231,11 +2327,11 @@
         transition: border-color 0.15s, background 0.15s;
     }
     .share-check-row:has(input:checked) {
-        border-color: #D4AF37;
+        border-color: var(--accent);
         background: #fffbe6;
     }
     .share-check-row input[type=checkbox] {
-        accent-color: #D4AF37;
+        accent-color: var(--accent);
         width: 16px;
         height: 16px;
         cursor: pointer;
@@ -2258,6 +2354,18 @@
         box-shadow: 0 24px 60px rgba(0,0,0,0.35);
     }
 
+    /* This modal needs the same flex treatment #shareModal[open] already has.
+       Without it the dialog stays `display:block` with `overflow:hidden`, so on
+       any viewport shorter than ~600px -- every phone in landscape, and small
+       phones in portrait -- the textarea and the Done button are clipped off
+       the bottom with no way to scroll to them. */
+    #copyTextModal[open] {
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh;
+        max-height: 90dvh; /* dvh accounts for mobile browser chrome; vh is the fallback */
+    }
+
     #copyTextModal::backdrop {
         background: rgba(0,0,0,0.65);
         backdrop-filter: blur(4px);
@@ -2266,7 +2374,7 @@
     /* Header stays Midnight/Gold */
     #copyTextModal .share-header {
         background: var(--ink, #1a1a1a);
-        color: #D4AF37;
+        color: var(--accent);
         padding: 16px 20px;
     }
 
@@ -2274,6 +2382,8 @@
     #manual-copy-area {
         width: 100%;
         height: 320px;
+        max-height: 45vh; /* shrink rather than push the Done button off a short screen */
+        min-height: 140px;
         background: #f9f9f9; /* Light paper gray */
         color: #1a1a1a;      /* Deep black text */
         border: 1px solid #ddd;
@@ -2284,6 +2394,13 @@
         line-height: 1.5;
         resize: none;
         outline: none;
+    }
+
+    /* Inset, because the textarea fills the modal body and an outset ring would
+       be clipped by the dialog's overflow:hidden. */
+    #manual-copy-area:focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: -3px;
     }
 
     /* Subtext adjustment for readability on white */
@@ -2304,7 +2421,7 @@
     #screenshot-preview.visible { display: block; }
     #screenshot-preview h4 {
         font-family: 'Playfair Display', serif;
-        color: #D4AF37;
+        color: var(--accent);
         margin: 0 0 10px;
         font-size: 1rem;
     }
@@ -2318,7 +2435,7 @@
     }
     .preview-row:last-child { border-bottom: none; }
     .preview-num { color: rgba(255,255,255,0.35); font-size: 0.75rem; min-width: 18px; }
-    .preview-key { color: #D4AF37; font-weight: 700; font-size: 0.8rem; min-width: 28px; }
+    .preview-key { color: var(--accent); font-weight: 700; font-size: 0.8rem; min-width: 28px; }
     .preview-title { color: white; font-weight: 500; }
     .preview-meta { color: rgba(255,255,255,0.45); font-size: 0.75rem; }
     .share-footer {
@@ -2344,7 +2461,7 @@
     }
     .share-action-btn:active { transform: scale(0.97); }
     .share-action-btn.copy-btn { background: var(--ink); color: white; }
-    .share-action-btn.screenshot-btn { background: #D4AF37; color: var(--ink); }
+    .share-action-btn.screenshot-btn { background: var(--accent); color: var(--ink); }
     .share-action-btn.cancel-btn { background: #f0f0f0; color: var(--ink); }
 
     /* Toast notification */
@@ -2372,7 +2489,7 @@
     }
 
     #toast span {
-        background: #d4af37;
+        background: var(--accent);
         color: #000;
         padding: 6px 14px; /* Bigger button target */
         border-radius: 8px;
@@ -2448,6 +2565,38 @@
         margin-bottom: 10px;
     }
     
+    /* =========================================
+       MOTION PREFERENCES
+    ========================================= */
+
+    /* The app has ~35 transitions and two keyframe animations. All of them are
+       decorative -- fades, slides, the glow pulse on an active filter -- so none
+       carry information that is lost by removing them. Anyone who has asked their
+       OS to reduce motion (vestibular sensitivity, migraine triggers, or simply
+       preference) gets the same app without the movement.
+
+       Near-zero rather than `none` so that transitionend/animationend listeners
+       still fire and nothing waits forever on an event that never arrives. */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+
+        /* The active-filter chip uses transform to pop slightly. Holding it at its
+           resting size avoids a jump that reads as motion even without a
+           transition to animate it. */
+        .tag.active,
+        .badge.active,
+        .filter-chip.active,
+        .drawer-chip.active {
+            transform: none !important;
+        }
+    }
 </style>
 </head>
 <body>
@@ -2514,6 +2663,13 @@
         </div>
         <div class="filter-section">
             <h4>History Options</h4>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                <label for="rd-sort-recent-toggle" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                    Sort by Recently Played
+                </label>
+                <input type="checkbox" id="rd-sort-recent-toggle" onchange="toggleRecentSort(this.checked)"
+                    style="transform: scale(1.2); cursor: pointer;">
+            </div>
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                 <label for="hide-untracked-toggle" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">
                     Hide Legacy Songs (>2y ago)
@@ -2745,16 +2901,6 @@
         Tap anywhere to close
     </div>
 </dialog>
-<dialog id="fs-preview" onclick="this.close(); document.getElementById('shareModal').showModal();"
-    style="border:none; padding:0; margin:0; max-width:none; max-height:none; width:100vw; height:100vh; background:#000;">
-
-    <div id="fs-preview-content" style="padding: 40px 10%; color:white; font-family:'DM Sans', sans-serif;">
-    </div>
-
-    <div style="padding-bottom: 40px; font-size:0.85rem; color:rgba(255,255,255,0.3); text-align:center; width:100%;">
-        Tap anywhere to close
-    </div>
-</dialog>
 <div id="toast"></div>
 <div id="lp-overlay" onclick="closeLongPress()"></div>
 <div id="lp-menu">
@@ -2817,352 +2963,387 @@
 <script id="songDataScript">
 // Embedded Data State
 let SONGS = [
-    { "id": "1", "title": "10,000 Reasons Bless The Lord", "artist": "Matt Redman", "keys": ["C"], "bpm": 73, "sig": "4/4", "yt": "", "ccli": "6016351", "bibleRef": "Psalm 103:1", "tags": ["slow"], "history": ["2024-06-02", "2024-05-12"] },
-    { "id": "2", "title": "10,001 Repetitions of the song title that never ends it goes on and on my friends, some coder started typing it to troubleshoot some bugs", "artist": ["Chris Tomlin", "Michael W. Smith", "Israel Houghton", "Brandon Lake"], "keys": ["A", "B", "C", "D", "E", "F", "G"], "bpm": 128, "sig": "4/4", "bibleRef": "Ephesians 5:18-20", "tags": ["medium", "response", "hymn", "christmas"], "yt": "", "ccli": "7017044", "notes": "...and he'll keep on typing it forever just because this is the note that never ends. This is the note that never ends, it goes on and on my friends, he forgot to stand up and stretch not knowing what it was, and he'll keep on sitting here forever just because.", "history": ["2026-05-10", "2025-06-28", "2025-05-25", "2024-09-22", "2024-07-27"] },
-    { "id": "3", "title": "A Mighty Fortress", "artist": "Christy Nockels", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5488935", "bibleRef": "", "tags": ["slow"], "history": ["2025-06-15", "2024-01-21"] },
-    { "id": "4", "title": "Above All", "artist": "Lenny LeBlanc, Michael W. Smith", "keys": ["F"], "bpm": 62, "sig": "4/4", "yt": "", "ccli": "2672885", "bibleRef": "", "tags": ["slow"], "history": ["2025-02-09"] },
-    { "id": "5", "title": "Again I Say Rejoice", "artist": "Israel Houghton", "keys": ["E"], "bpm": 128, "sig": "4/4", "yt": "", "ccli": "4302823", "bibleRef": "", "tags": ["fast"] },
-    { "id": "6", "title": "Agnus Dei", "artist": "Michael W. Smith", "keys": ["D", "G"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "626713", "bibleRef": "", "tags": ["slow"], "history": ["2026-02-22", "2025-06-28", "2025-05-25", "2024-09-22", "2024-07-27"] },
-    { "id": "7", "title": "Alive", "artist": "Hillsong", "keys": ["E"], "bpm": 132, "sig": "4/4", "yt": "", "ccli": "6605212", "bibleRef": "", "tags": ["fast"] },
-    { "id": "8", "title": "All About You", "artist": "Israel Houghton", "keys": ["Eb", "E"], "bpm": 118, "sig": "4/4", "yt": "", "ccli": "3588284", "bibleRef": "", "tags": ["fast"] },
-    { "id": "9", "title": "All Because of Jesus", "artist": "Steve Fee", "keys": ["Eb", "G"], "bpm": 140, "sig": "4/4", "yt": "", "ccli": "4882903", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2025-12-28", "2025-09-21", "2025-06-15", "2025-04-27", "2024-10-20", "2024-07-07"] },
-    { "id": "10", "title": "All Creatures of Our God and King", "artist": "David Crowder", "keys": ["C"], "bpm": 69, "sig": "4/4", "yt": "", "ccli": "3608102", "bibleRef": "", "tags": ["medium"], "history": ["2025-05-11"] },
-    { "id": "11", "title": "All Hail King Jesus", "artist": "Bethel, Jeremy Riddle", "keys": ["E", "F"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "7097216", "bibleRef": "", "tags": ["slow"], "history": ["2026-01-11", "2025-10-26", "2025-04-20", "2024-11-30", "2024-07-21", "2024-04-07", "2024-03-31"] },
-    { "id": "12", "title": "All I Need Is You", "artist": "Hillsong, Marty Sampson", "keys": ["Ab", "E"], "bpm": 75, "sig": "4/4", "yt": "", "ccli": "4455213", "bibleRef": "", "tags": ["slow"] },
-    { "id": "13", "title": "All Things Are Possible", "artist": "Hillsong (Darlene Zschech)", "keys": ["C"], "bpm": 122, "sig": "4/4", "yt": "", "ccli": "2245140", "bibleRef": "", "tags": ["fast", "key change"] },
-    { "id": "14", "title": "All Who Are Thirsty", "artist": "Brenton Brown", "keys": ["Db"], "bpm": 54, "sig": "6/8", "yt": "", "ccli": "2489542", "bibleRef": "", "tags": ["slow"], "history": ["2025-07-06",] },
-    { "id": "15", "title": "Always", "artist": "Passion, Kristian Stanfill", "keys": ["Db"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "5881037", "bibleRef": "", "tags": ["slow"] },
-    { "id": "16", "title": "Amazed", "artist": "Jared Anderson", "keys": ["D", "Eb", "G"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "4221021", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-05-17", "2024-03-17"] },
-    { "id": "17", "title": "Amazing Grace", "artist": "Traditional", "keys": ["Bb"], "bpm": 90, "sig": "3/4", "yt": "", "ccli": "22025", "bibleRef": "", "tags": ["slow", "hymn"], "history": ["2025-04-27"] },
-    { "id": "18", "title": "Amazing Grace (My Chains Are Gone)", "artist": "Chris Tomlin", "keys": ["Bb", "Db"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "4768151", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-11-02", "2024-07-28"] },
-    { "id": "19", "title": "Amen", "artist": "Charity Gayle", "keys": ["D"], "bpm": 53, "sig": "2/2", "yt": "", "ccli": "7081391", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-05-11"] },
-    { "id": "20", "title": "Ancient of Days", "artist": "Gary Sadler", "keys": ["A"], "bpm": 87, "sig": "4/4", "yt": "", "ccli": "7124328", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-03-22", "2025-07-20", "2024-06-09", "2023-12-31"] },
-    { "id": "21", "title": "Arise", "artist": "Don Moen (Paul Baloche)", "keys": ["C"], "bpm": 117, "sig": "4/4", "yt": "", "ccli": "4032337", "bibleRef": "", "tags": ["fast", "key change"] },
-    { "id": "22", "title": "As The Deer", "artist": "Martin Nystrom", "keys": ["A"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "1431", "bibleRef": "", "tags": ["slow"], "history": ["2024-01-07"] },
-    { "id": "23", "title": "At The Foot of the Cross", "artist": "Kathryn Scott", "keys": ["Eb"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "4157353", "bibleRef": "", "tags": ["slow"] },
-    { "id": "24", "title": "At Your Feet", "artist": "Darren Cooper", "keys": ["D"], "bpm": 68, "sig": "4/4", "yt": "https://www.youtube.com/watch?v=_sANixWgMdc", "ccli": "4871464", "bibleRef": "", "tags": ["slow"] },
-    { "id": "25", "title": "Awake My Soul", "artist": "Hillsong, Brooke Ligertwood", "keys": ["F"], "bpm": 127, "sig": "4/4", "yt": "", "ccli": "7134998", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-01-25", "2024-03-10"] },
-    { "id": "26", "title": "Awakening", "artist": "Chris Tomlin", "keys": ["Ab"], "bpm": 82, "sig": "4/4", "yt": "", "ccli": "5677399", "bibleRef": "", "tags": ["slow"] },
-    { "id": "27", "title": "Away In A Manger", "artist": "Traditional", "keys": ["F"], "bpm": 100, "sig": "3/4", "yt": "", "ccli": "38583", "bibleRef": "", "tags": ["slow", "hymn", "christmas"] },
-    { "id": "28", "title": "Awesome God", "artist": "Rich Mullins", "keys": ["Cm"], "bpm": 72, "sig": "2/2", "yt": "", "ccli": "41099", "bibleRef": "", "tags": ["fast"], "history": ["2024-09-29"] },
-    { "id": "29", "title": "Battle Belongs", "artist": "Phil Wickham", "keys": ["Db"], "bpm": 81, "sig": "4/4", "yt": "", "ccli": "7148126", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2024-12-29", "2024-10-06", "2024-05-19", "2024-02-11", "2024-01-07"] },
-    { "id": "30", "title": "Be Glorified", "artist": "Billy Funk", "keys": ["Eb"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "429226", "bibleRef": "", "tags": ["slow"] },
-    { "id": "31", "title": "Be Thou My Vision", "artist": "Traditional", "keys": ["D", "Db"], "bpm": 90, "sig": "3/4", "yt": "", "ccli": "7056332", "bibleRef": "", "tags": ["slow", "hymn"], "history": ["2026-01-04", "2024-07-07"] },
-    { "id": "32", "title": "Beautiful", "artist": "Phil Wickham", "keys": ["A"], "bpm": 83, "sig": "4/4", "yt": "", "ccli": "5124024", "bibleRef": "", "tags": ["slow"], "history": ["2026-04-26", "2025-03-08", "2025-10-12", "2024-10-20", "2024-07-07", "2024-04-14"] },
-    { "id": "33", "title": "Beautiful One", "artist": "Tim Hughes", "keys": ["Bb"], "bpm": 122, "sig": "4/4", "yt": "", "ccli": "3915912", "bibleRef": "", "tags": ["fast"] },
-    { "id": "34", "title": "Because He Lives (Amen)", "artist": "Chris Tomlin (Matt Maher)", "keys": ["Eb"], "bpm": 84, "sig": "4/4", "yt": "", "ccli": "7027887", "bibleRef": "", "tags": ["medium"], "history": ["2026-03-01", "2024-03-17"] },
-    { "id": "35", "title": "Before You", "artist": "Randy Butler", "keys": ["Bb"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "2678164", "bibleRef": "", "tags": ["slow"] },
-    { "id": "36", "title": "Behold He Comes", "artist": "Zachery Dusing", "keys": ["C"], "bpm": 100, "sig": "4/4", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["fast", "opener", "original", "christmas", "key change"], "history": ["2024-12-15"] },
-    { "id": "37", "title": "Better Is One Day", "artist": "Matt Redman", "keys": ["B", "Eb"], "bpm": 77, "sig": "4/4", "yt": "", "ccli": "1097451", "bibleRef": "", "tags": ["medium"] },
-    { "id": "38", "title": "Blessed Assurance", "artist": "Traditional", "keys": ["Bb"], "bpm": 66, "sig": "9/8", "yt": "", "ccli": "22324", "bibleRef": "", "tags": ["slow", "hymn"] },
-    { "id": "39", "title": "Blessed Be Your Name", "artist": "Matt Redman", "keys": ["A"], "bpm": 116, "sig": "4/4", "yt": "", "ccli": "3798438", "bibleRef": "", "tags": ["medium"], "history": ["2026-04-26", "2025-03-30", "2024-10-27", "2024-06-09", "2024-01-28", "2024-01-21"] },
-    { "id": "40", "title": "Break Every Chain", "artist": "Will Reagan, Jesus Culture", "keys": ["A", "C"], "bpm": 67, "sig": "4/4", "yt": "", "ccli": "5910977", "bibleRef": "", "tags": ["slow"], "history": ["2024-12-29", "2024-03-24"] },
-    { "id": "41", "title": "Breathe", "artist": "Marie Barnett, Michael W. Smith", "keys": ["Eb"], "bpm": 58, "sig": "4/4", "yt": "", "ccli": "1887381", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-02-08", "2025-09-07", "2025-07-27"] },
-    { "id": "42", "title": "Broken Vessels (Amazing Grace)", "artist": "Hillsong (Joel Houston)", "keys": ["G"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7019974", "bibleRef": "", "tags": ["slow"] },
-    { "id": "43", "title": "Build My Life", "artist": "Housefires (Pat Barret)", "keys": ["C", "D"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7070345", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-12-28", "2025-12-14", "2025-08-17", "2025-06-08", "2024-08-18", "2024-08-04"] },
-    { "id": "44", "title": "Came To My Rescue", "artist": "Hillsong, Dylan Thomas", "keys": ["D"], "bpm": 83, "sig": "4/4", "yt": "", "ccli": "4705190", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-08-31", "2024-09-01", "2024-05-19"] },
-    { "id": "45", "title": "Can't Stop Praising His Name (Call Him Up)", "artist": "Herman Netter, Ron Kenoly", "keys": ["Eb"], "bpm": 140, "sig": "4/4", "yt": "", "ccli": "450408", "bibleRef": "", "tags": ["fast"] },
-    { "id": "46", "title": "Cannons", "artist": "Phil Wickham", "keys": ["A"], "bpm": 78, "sig": "4/4", "yt": "", "ccli": "5124055", "bibleRef": "", "tags": ["fast"], "history": ["2026-03-28", "2026-03-15", "2025-03-02", "2024-06-16", "2023-12-31"] },
-    { "id": "47", "title": "Center", "artist": "Charlie Hall", "keys": ["E"], "bpm": 112, "sig": "4/4", "yt": "", "ccli": "4665261", "bibleRef": "", "tags": ["medium"], "history": ["2024-11-10", "2024-03-17", "2024-02-04"] },
-    { "id": "48", "title": "Christ Is Risen", "artist": "Matt Maher", "keys": ["Db"], "bpm": 81, "sig": "4/4", "yt": "", "ccli": "5242683", "bibleRef": "", "tags": ["medium"] },
-    { "id": "49", "title": "Closer", "artist": "Bethel, Steffany Gretzinger", "keys": ["E"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "6227047", "bibleRef": "", "tags": ["slow"] },
-    { "id": "50", "title": "Come Alive", "artist": "Lauren Daigle", "keys": ["C"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7019315", "bibleRef": "", "tags": ["slow"] },
-    { "id": "51", "title": "Come And Let Your Presence", "artist": "Merchant Band (Tim Reimherr)", "keys": ["C"], "bpm": 81, "sig": "4/4", "yt": "", "ccli": "12404", "bibleRef": "", "tags": ["slow"] },
-    { "id": "52", "title": "Come Away", "artist": "Jesus Culture, Brock Human", "keys": ["C"], "bpm": 82, "sig": "4/4", "yt": "", "ccli": "5874202", "bibleRef": "", "tags": ["slow"], "history": ["2026-03-28", "2024-04-21"] },
-    { "id": "53", "title": "Come Now Is The Time To Worship", "artist": "Brian Doerksen", "keys": ["C"], "bpm": 98, "sig": "4/4", "yt": "", "ccli": "2430948", "bibleRef": "", "tags": ["medium"], "history": ["2025-07-20", "2024-06-30", "2024-02-04"] },
-    { "id": "54", "title": "Come Thou Fount", "artist": "Traditional", "keys": ["Bb"], "bpm": 80, "sig": "4/4", "yt": "", "ccli": "108389", "bibleRef": "", "tags": ["slow", "hymn"], "history": ["2026-02-15", "2025-08-03"] },
-    { "id": "55", "title": "Cornerstone", "artist": "Hillsong, Edward Mote", "keys": ["C"], "bpm": 71, "sig": "4/4", "yt": "", "ccli": "6158927", "bibleRef": "", "tags": ["medium"], "history": ["2026-04-12", "2025-04-06", "2024-12-29", "2024-07-28", "2024-02-04"] },
-    { "id": "56", "title": "Cover The Earth", "artist": "Israel Houghton", "keys": ["Db"], "bpm": 128, "sig": "4/4", "yt": "", "ccli": "4194299", "bibleRef": "", "tags": ["fast"] },
-    { "id": "57", "title": "Covered", "artist": "Israel Houghton", "keys": ["Bb"], "bpm": 170, "sig": "6/8", "yt": "", "ccli": "7016169", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-01-25", "2024-09-29", "2023-11-26"] },
-    { "id": "58", "title": "Crowns Down", "artist": "Gateway Worship, Josh Baldwin", "keys": ["Bb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7222828", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-04-26", "2026-02-08", "2025-09-21", "2025-01-19", "2024-07-27", "2024-07-14", "2024-06-02", "2024-05-26"] },
-    { "id": "59", "title": "Days of Elijah", "artist": "Robin Mark", "keys": ["G"], "bpm": 110, "sig": "4/4", "yt": "", "ccli": "1537904", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2024-11-03"] },
-    { "id": "60", "title": "Death Was Arrested", "artist": "North Point Worship", "keys": ["B"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7046448", "bibleRef": "", "tags": ["medium"], "history": ["2026-05-24", "2026-04-05", "2026-03-22", "2025-11-30", "2025-11-09", "2025-07-13", "2025-04-27", "2025-04-20"] },
-    { "id": "61", "title": "Desert Song", "artist": "Hillsong", "keys": ["D"], "bpm": 110, "sig": "4/4", "yt": "", "ccli": "5060793", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-03-01", "2025-06-22", "2025-01-19", "2024-10-13", "2024-01-28"] },
-    { "id": "62", "title": "Did You Feel the Mountains Tremble", "artist": "Delirious?", "keys": ["Eb"], "bpm": 102, "sig": "4/4", "yt": "", "ccli": "1866179", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-04-19", "2025-04-13", "2024-06-23", "2024-04-14"] },
-    { "id": "63", "title": "Doxology (God Be Praised)", "artist": "The Belonging Co", "keys": ["E"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7145749", "bibleRef": "", "tags": ["slow"], "history": ["2025-11-16", "2025-03-02", "2024-12-15", "2024-06-23", "2024-04-21", "2024-01-21"] },
-    { "id": "64", "title": "Draw Me Close", "artist": "Kelly Carpenter", "keys": ["Eb", "G"], "bpm": 69, "sig": "4/4", "yt": "", "ccli": "1459484", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-04-12", "2025-09-14"] },
-    { "id": "65", "title": "Drawn To You", "artist": "Gateway Worship", "keys": ["D", "G"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "4870081", "bibleRef": "", "tags": ["slow"] },
-    { "id": "66", "title": "Echo Holy", "artist": "Red Rocks Worship", "keys": ["D"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7134317", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-12-28", "2025-11-30"] },
-    { "id": "67", "title": "Enter The Gates", "artist": "Bryan & Katie Torwalt", "keys": ["D", "Db"], "bpm": 105, "sig": "4/4", "yt": "", "ccli": "7016301", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-02-22", "2025-09-07", "2025-07-06", "2025-05-18", "2025-03-30", "2024-08-11", "2024-07-21", "2024-04-21"] },
-    { "id": "68", "title": "Even So Come", "artist": "Passion", "keys": ["C"], "bpm": 80, "sig": "4/4", "yt": "", "ccli": "7036288", "bibleRef": "", "tags": ["medium"], "history": ["2025-09-21", "2025-04-06",] },
-    { "id": "69", "title": "Ever Be", "artist": "Bethel", "keys": ["D"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7030065", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-03-22", "2024-11-03", "2024-08-04", "2024-07-21"] },
-    { "id": "70", "title": "Everlasting God", "artist": "Brenton Brown", "keys": ["F", "G"], "bpm": 105, "sig": "4/4", "yt": "", "ccli": "4556538", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-04-19", "2025-08-17", "2025-06-28", "2024-08-18"] },
-    { "id": "71", "title": "Every Praise Is To Our God", "artist": "Hezekiah Walker", "keys": ["Db"], "bpm": 102, "sig": "4/4", "yt": "", "ccli": "6623483", "bibleRef": "", "tags": ["fast", "key change"] },
-    { "id": "72", "title": "Everything That Has Breath", "artist": "Matt Redman", "keys": ["Ab"], "bpm": 124, "sig": "4/4", "yt": "", "ccli": "4113220", "bibleRef": "", "tags": ["fast"] },
-    { "id": "73", "title": "Exalt The Lord", "artist": "Cindy Rethmeier", "keys": ["G"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "768066", "bibleRef": "", "tags": ["slow"], "history": ["2024-09-22", "2024-07-27"] },
-    { "id": "74", "title": "Exalted One", "artist": "Elevation Worship", "keys": ["Db"], "bpm": 122, "sig": "4/4", "yt": "", "ccli": "5881020", "bibleRef": "", "tags": ["fast"] },
-    { "id": "75", "title": "Fall Into You", "artist": "Elevation Worship", "keys": ["Ab"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7100411", "bibleRef": "", "tags": ["slow"] },
-    { "id": "76", "title": "Famous One", "artist": "Chris Tomlin", "keys": ["Bb"], "bpm": 110, "sig": "4/4", "yt": "", "ccli": "3599431", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2024-01-14"] },
-    { "id": "77", "title": "Father of Lights", "artist": "Jeremy Riddle", "keys": ["D"], "bpm": 108, "sig": "4/4", "yt": "", "ccli": "5161619", "bibleRef": "", "tags": ["fast"] },
-    { "id": "78", "title": "Father You Are All We Need", "artist": "Citizens", "keys": ["G"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7014441", "bibleRef": "", "tags": ["slow"] },
-    { "id": "79", "title": "For All You've Done", "artist": "Hillsong", "keys": ["Eb"], "bpm": 122, "sig": "4/4", "yt": "", "ccli": "4221021", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2024-06-30"] },
-    { "id": "80", "title": "For Souls For Nations", "artist": "Zachery Dusing", "keys": ["G"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["slow", "original"], "history": ["2025-08-17", "2025-05-18", "2024-09-22", "2024-08-18"] },
-    { "id": "81", "title": "Forever", "artist": "Chris Tomlin", "keys": ["Ab", "B", "F"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "3148428", "bibleRef": "", "tags": ["medium", "opener"], "history": ["2026-04-05", "2025-08-24", "2025-04-20", "2024-09-08", "2024-08-25"] },
-    { "id": "82", "title": "Forever Reign", "artist": "Hillsong", "keys": ["D"], "bpm": 83, "sig": "4/4", "yt": "", "ccli": "5639997", "bibleRef": "", "tags": ["medium"], "history": ["2024-11-03", "2024-05-05", "2024-01-14"] },
-    { "id": "83", "title": "Freedom", "artist": "Jesus Culture", "keys": ["G"], "bpm": 124, "sig": "4/4", "yt": "", "ccli": "7078151", "bibleRef": "2 Corinthians 3:17", "tags": ["fast", "opener"], "history": ["2025-11-16", "2025-07-06", "2025-01-26", "2024-06-09"] },
-    { "id": "84", "title": "Freedom Reigns", "artist": "Jason Upton", "keys": ["D", "E"], "bpm": 65, "sig": "4/4", "yt": "", "ccli": "2430948", "bibleRef": "", "tags": ["slow"], "history": ["2024-03-03", "2024-01-14"] },
-    { "id": "85", "title": "Friend of God", "artist": "Israel Houghton", "keys": ["C"], "bpm": 128, "sig": "4/4", "yt": "", "ccli": "3991651", "bibleRef": "", "tags": ["fast"] },
-    { "id": "86", "title": "From The Day", "artist": "I Am They", "keys": ["D"], "bpm": 116, "sig": "4/4", "yt": "", "ccli": "7010476", "bibleRef": "", "tags": ["fast"] },
-    { "id": "87", "title": "From The Inside Out", "artist": "Hillsong", "keys": ["G"], "bpm": 71, "sig": "4/4", "yt": "", "ccli": "4705176", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-10-27"] },
-    { "id": "88", "title": "Give Me Faith", "artist": "Elevation Worship", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5683084", "bibleRef": "", "tags": ["slow"] },
-    { "id": "89", "title": "Give Thanks", "artist": "Don Moen", "keys": ["C"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "20285", "bibleRef": "", "tags": ["slow"] },
-    { "id": "90", "title": "Give Thanks (Hodu)", "artist": "Gateway Worship", "keys": ["B"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "5113912", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-11-16"] },
-    { "id": "91", "title": "Give Us Clean Hands", "artist": "Chris Tomlin", "keys": ["F#"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "2818472", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-04-27", "2025-01-12", "2024-07-21"] },
-    { "id": "92", "title": "Give You All My Praise", "artist": "Maggie Pruitt", "keys": ["E"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["slow", "original"], "history": ["2026-01-25", "2025-01-26"] },
-    { "id": "93", "title": "Glorious", "artist": "Passion", "keys": ["E"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "7004839", "bibleRef": "", "tags": ["medium"], "history": ["2026-03-15", "2026-01-04", "2025-11-09", "2025-07-13", "2025-05-04", "2025-01-12", "2024-11-30", "2024-11-17", "2024-10-13", "2024-10-06", "2024-09-15", "2024-05-26"] },
-    { "id": "94", "title": "Glorious (Kauflin)", "artist": "Bob Kauflin, Sovereign Grace", "keys": ["D"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "5161860", "bibleRef": "", "tags": ["slow"], "history": ["2026-04-12", "2026-03-28", "2025-11-30", "2025-05-04", "2025-01-12", "2024-11-17", "2024-10-13",] },
-    { "id": "95", "title": "Glorious Day", "artist": "Passion", "keys": ["A"], "bpm": 110, "sig": "4/4", "yt": "", "ccli": "7081388", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-03-08", "2026-01-04", "2025-04-20", "2025-02-16", "2025-01-05", "2024-08-04", "2024-03-03"] },
-    { "id": "96", "title": "God Is Great", "artist": "Hillsong", "keys": ["Eb"], "bpm": 125, "sig": "4/4", "yt": "", "ccli": "4556552", "bibleRef": "", "tags": ["fast"] },
-    { "id": "97", "title": "God Of Wonders", "artist": "Caedmon's Call", "keys": ["D"], "bpm": 80, "sig": "4/4", "yt": "", "ccli": "3118757", "bibleRef": "", "tags": ["slow", "key change"] },
-    { "id": "98", "title": "Good Good Father", "artist": "Chris Tomlin", "keys": ["Bb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7036612", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-05-03", "2025-08-31", "2025-03-30", "2025-03-02", "2025-02-16", "2025-01-05", "2024-09-01", "2024-06-16", "2024-03-24", "2023-12-03"] },
-    { "id": "99", "title": "Goodness Of God", "artist": "Bethel", "keys": ["Ab"], "bpm": 63, "sig": "4/4", "yt": "", "ccli": "7117726", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-03-01", "2025-10-26", "2025-06-28", "2025-03-16", "2024-09-15", "2024-06-23"] },
-    { "id": "100", "title": "Grace Like Rain", "artist": "Todd Agnew", "keys": ["Dm"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "3689877", "bibleRef": "", "tags": ["slow"] },
-    { "id": "101", "title": "Gratitude", "artist": "Bethel, Brandon Lake", "keys": ["F"], "bpm": 52, "sig": "6/8", "yt": "", "ccli": "7158417", "bibleRef": "", "tags": ["slow"], "history": ["2026-03-08", "2025-11-02", "2025-09-28", "2025-07-13", "2024-09-15"] },
-    { "id": "102", "title": "Graves Into Gardens", "artist": "Elevation Worship, Brandon Lake", "keys": ["B"], "bpm": 46, "sig": "6/8", "yt": "", "ccli": "7138219", "bibleRef": "", "tags": ["medium"], "history": ["2026-02-08", "2025-09-28", "2025-05-04", "2024-09-08"] },
-    { "id": "103", "title": "Great Are You Lord", "artist": "All Sons & Daughters", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "6454302", "bibleRef": "", "tags": ["slow"], "history": ["2025-05-04", "2024-05-19"] },
-    { "id": "104", "title": "Great I Am", "artist": "New Life Worship, Jared Anderson", "keys": ["D"], "bpm": 80, "sig": "4/4", "yt": "", "ccli": "5881491", "bibleRef": "", "tags": ["slow"], "history": ["2024-03-24"] },
-    { "id": "105", "title": "Great Is Thy Faithfulness", "artist": "Traditional", "keys": ["Bb"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "18723", "bibleRef": "", "tags": ["slow", "hymn", "response"], "history": ["2025-08-18", "2025-05-04", "2024-08-11"] },
-    { "id": "106", "title": "Great Things", "artist": "Phil Wickham", "keys": ["C"], "bpm": 102, "sig": "4/4", "yt": "", "ccli": "7111321", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-05-24", "2025-10-19", "2025-09-28", "2025-08-17", "2025-05-25", "2025-03-23", "2025-03-09", "2024-08-18", "2024-03-30"] },
-    { "id": "107", "title": "Hallelujah Chorus", "artist": "Handel", "keys": ["A"], "bpm": 100, "sig": "4/4", "yt": "", "ccli": "Traditional", "bibleRef": "", "tags": ["slow"] },
-    { "id": "108", "title": "Hallelujah You Are Here", "artist": "Zachery Dusing", "keys": ["E"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["slow", "original"] },
-    { "id": "109", "title": "Happy Day", "artist": "Tim Hughes", "keys": ["Db"], "bpm": 115, "sig": "4/4", "yt": "", "ccli": "4847027", "bibleRef": "", "tags": ["fast"] },
-    { "id": "110", "title": "Hark The Herald Angels Sing", "artist": "Traditional", "keys": ["D", "Db"], "bpm": 110, "sig": "4/4", "yt": "", "ccli": "27738", "bibleRef": "", "tags": ["medium", "hymn", "christmas"], "history": ["2024-12-15", "2023-12-17"] },
-    { "id": "111", "title": "He Is Exalted", "artist": "Twila Paris", "keys": ["Db", "Eb"], "bpm": 92, "sig": "4/4", "yt": "", "ccli": "17827", "bibleRef": "", "tags": ["medium"], "history": ["2026-03-01", "2024-04-07"] },
-    { "id": "112", "title": "He Shall Reign Forevermore", "artist": "Chris Tomlin", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7050416", "bibleRef": "", "tags": ["slow"], "history": ["2025-12-07", "2024-12-01", "2023-12-24"] },
-    { "id": "113", "title": "Healer", "artist": "Kari Jobe", "keys": ["Eb"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "5053151", "bibleRef": "", "tags": ["slow"] },
-    { "id": "114", "title": "Hear Our Praises", "artist": "Hillsong", "keys": ["Bb"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "2543402", "bibleRef": "", "tags": ["fast"], "history": ["2025-08-03"]},
-    { "id": "115", "title": "Hear Us From Heaven", "artist": "Jared Anderson", "keys": ["G"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "4455392", "bibleRef": "", "tags": ["slow"] },
-    { "id": "116", "title": "Heart Of Worship", "artist": "Matt Redman", "keys": ["Bb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "2296522", "bibleRef": "", "tags": ["slow"] },
-    { "id": "117", "title": "Heaven's Song", "artist": "Walker Beach", "keys": ["Db"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "5074363", "bibleRef": "", "tags": ["slow"] },
-    { "id": "118", "title": "Here Again", "artist": "Elevation Worship", "keys": ["E"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7111925", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-08-18", "2024-01-21"] },
-    { "id": "119", "title": "Here As In Heaven", "artist": "Elevation Worship", "keys": ["G"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7051506", "bibleRef": "", "tags": ["slow"], "history": ["2026-05-17"] },
-    { "id": "120", "title": "Here For You", "artist": "Matt Redman", "keys": ["Eb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5925663", "bibleRef": "", "tags": ["medium"] },
-    { "id": "121", "title": "Here I Am To Worship", "artist": "Tim Hughes", "keys": ["C", "Db", "F"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "3266032", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-06-01", "2024-10-20", "2024-06-30"] },
-    { "id": "122", "title": "Here In Your Presence", "artist": "Jon Egan", "keys": ["A"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "4806450", "bibleRef": "", "tags": ["slow"], "history": ["2025-03-23", "2024-11-10"] },
-    { "id": "123", "title": "Holy Forever", "artist": "Chris Tomlin", "keys": ["F#"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7201044", "bibleRef": "", "tags": ["slow"], "history": ["2025-12-21", "2025-12-14", "2025-10-05", "2025-05-18", "2025-03-02", "2024-11-30"] },
-    { "id": "124", "title": "Holy Forever (Christmas)", "artist": "Chris Tomlin", "keys": ["F#"], "bpm": 72, "sig": "4/4", "bibleRef": "", "tags": ["slow", "christmas"], "yt": "", "ccli": "7249209", "notes": "" },
-    { "id": "125", "title": "Holy Holy Holy", "artist": "Traditional", "keys": ["Db"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "2102", "bibleRef": "", "tags": ["fast", "hymn"], "history": ["2025-11-09", "2025-03-02", "2024-06-16", "2024-06-09"] },
-    { "id": "126", "title": "Holy Holy Holy (Hymn)", "artist": "Traditional", "keys": ["C"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "1156", "bibleRef": "", "tags": ["slow", "hymn"] },
-    { "id": "127", "title": "Holy Holy Holy (Lord God Almighty)", "artist": "Traditional", "keys": ["C"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "2102", "bibleRef": "", "tags": ["slow", "hymn"] },
-    { "id": "128", "title": "Holy Holy Holy (Savior King)", "artist": "Hillsong", "keys": ["C"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "4879202", "bibleRef": "", "tags": ["slow", "response"] },
-    { "id": "129", "title": "Holy Is The Lord", "artist": "Chris Tomlin", "keys": ["D"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "4157251", "bibleRef": "", "tags": ["slow"], "history": ["2025-10-12"] },
-    { "id": "130", "title": "Holy Is The Lord", "artist": "Jeff Searles", "keys": ["A"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "4034425", "bibleRef": "", "tags": ["fast", "opener"] },
-    { "id": "131", "title": "Holy Is Your Name / Lord You're Holy", "artist": "Brooklyn Tabernacle", "keys": ["Em"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "1459484", "bibleRef": "", "tags": ["slow"] },
-    { "id": "132", "title": "Holy Spirit", "artist": "Bryan & Katie Torwalt", "keys": ["C", "D", "Db"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "6087919", "bibleRef": "", "tags": ["slow"], "history": ["2026-05-24", "2025-06-08", "2024-02-18"] },
-    { "id": "133", "title": "Holy Water", "artist": "We The Kingdom", "keys": ["D"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "7136448", "bibleRef": "", "tags": ["fast"], "history": ["2025-10-19", "2025-08-03", "2025-01-05", "2024-05-26", "2024-03-30"] },
-    { "id": "134", "title": "Hosanna", "artist": "Hillsong", "keys": ["D"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "4785835", "bibleRef": "", "tags": ["slow"], "history": ["2026-04-26", "2026-01-25", "2025-04-13", "2025-04-06"] },
-    { "id": "135", "title": "Hosanna (Praise Is Rising)", "artist": "Paul Baloche", "keys": ["Eb"], "bpm": 118, "sig": "4/4", "yt": "", "ccli": "4662491", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-03-29", "2025-04-13", "2024-10-20", "2024-07-27", "2024-07-14", "2024-06-23", "2024-05-05"] },
-    { "id": "136", "title": "House of the Lord", "artist": "Phil Wickham", "keys": ["B", "Bb"], "bpm": 86, "sig": "4/4", "yt": "", "ccli": "7168991", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-03-29", "2026-01-18", "2025-08-31", "2025-05-11", "2025-01-19", "2024-09-01", "2024-08-11", "2024-06-02", "2024-05-12", "2023-12-31"] },
-    { "id": "137", "title": "How Deep The Father's Love", "artist": "Stuart Townend", "keys": ["Eb"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "1558110", "bibleRef": "", "tags": ["slow"], "history": ["2024-12-29", "2024-05-12", "2024-01-14"] },
-    { "id": "138", "title": "How Great Is Our God", "artist": "Chris Tomlin", "keys": ["Ab", "C", "D", "Eb", "E"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "4348399", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-02-22", "2025-09-21", "2025-06-28", "2024-09-15", "2024-02-04"] },
-    { "id": "139", "title": "How Great Thou Art", "artist": "Traditional", "keys": ["Ab"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "14181", "bibleRef": "", "tags": ["slow", "hymn", "response"], "history": ["2025-11-16", "2025-07-27"] },
-    { "id": "140", "title": "How He Loves", "artist": "John Mark McMillan", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5032549", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-10-26", "2025-03-23", "2024-02-18"] },
-    { "id": "141", "title": "Hungry", "artist": "Kathryn Scott", "keys": ["A", "Bb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "2650364", "bibleRef": "", "tags": ["slow"], "history": ["2026-03-08", "2025-07-06",]},
-    { "id": "142", "title": "Hymn Of Heaven", "artist": "Phil Wickham", "keys": ["F#"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7177789", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-05-18", "2025-03-02", "2024-11-30", "2024-11-17", "2024-08-18", "2024-03-31", "2024-03-03"] },
-    { "id": "143", "title": "I Am", "artist": "Crowder", "keys": ["Db"], "bpm": 108, "sig": "4/4", "yt": "", "ccli": "7008315", "bibleRef": "", "tags": ["fast"] },
-    { "id": "144", "title": "I Am Free", "artist": "Newsboys", "keys": ["D"], "bpm": 122, "sig": "4/4", "yt": "", "ccli": "4447960", "bibleRef": "", "tags": ["fast"] },
-    { "id": "145", "title": "I Am Not Alone", "artist": "Kari Jobe", "keys": ["B", "Bb", "E"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7008305", "bibleRef": "", "tags": ["slow"], "history": ["2026-03-22"] },
-    { "id": "146", "title": "I Could Sing of Your Love Forever", "artist": "Delirious?", "keys": ["Bb", "Db"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "1043199", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-10-20", "2024-07-07"] },
-    { "id": "147", "title": "I Exalt Thee", "artist": "Pete Sanchez Jr.", "keys": ["C"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "17803", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-06-28", "2025-01-05"] },
-    { "id": "148", "title": "I Give Myself Away", "artist": "William McDowell", "keys": ["C"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "5873331", "bibleRef": "", "tags": ["slow"] },
-    { "id": "149", "title": "I Give You My Heart", "artist": "Hillsong", "keys": ["B", "Eb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "1866148", "bibleRef": "", "tags": ["slow"], "history": ["2026-03-28", "2026-03-15"] },
-    { "id": "150", "title": "I Got Saved", "artist": "Selah", "keys": ["F#"], "bpm": 78, "sig": "4/4", "yt": "", "ccli": "7062479", "bibleRef": "", "tags": ["fast"] },
-    { "id": "151", "title": "I Know Who I Am", "artist": "Israel Houghton", "keys": ["A", "B"], "bpm": 126, "sig": "4/4", "yt": "", "ccli": "4447915", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2025-08-10", "2024-08-18", "2024-06-16"] },
-    { "id": "152", "title": "I Love You Lord", "artist": "Laurie Klein", "keys": ["D", "E"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "25266", "bibleRef": "", "tags": ["slow"] },
-    { "id": "153", "title": "I Love Your Presence", "artist": "Jeremy Riddle", "keys": ["Bb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "5161619", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-06-08", "2025-02-09"] },
-    { "id": "154", "title": "I Need You More", "artist": "Lindell Cooley", "keys": ["E"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "3011317", "bibleRef": "", "tags": ["slow"] },
-    { "id": "155", "title": "I See Heaven", "artist": "Bryan & Katie Torwalt", "keys": ["F"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "6087919", "bibleRef": "", "tags": ["slow"], "history": ["2025-10-05", "2025-04-06", "2024-11-10", "2024-02-04"] },
-    { "id": "156", "title": "I See The Lord", "artist": "Chris Falson", "keys": ["Ab", "Bb"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "106482", "bibleRef": "", "tags": ["slow"] },
-    { "id": "157", "title": "I Speak Jesus", "artist": "Charity Gayle", "keys": ["E"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "7136201", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-07-27", "2024-07-27", "2024-04-14", "2024-02-11"] },
-    { "id": "158", "title": "I Surrender", "artist": "Hillsong", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "6177375", "bibleRef": "", "tags": ["slow"], "history": ["2026-01-11"] },
-    { "id": "159", "title": "I Surrender All", "artist": "Traditional", "keys": ["A", "D"], "bpm": 62, "sig": "4/4", "yt": "", "ccli": "23189", "bibleRef": "", "tags": ["slow", "hymn", "response"], "history": ["2025-01-12", "2024-11-30", "2024-11-17", "2024-05-05", "2024-04-28"] },
-    { "id": "160", "title": "I Want To Know You", "artist": "Jesus Culture", "keys": ["C", "Eb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "5702111", "bibleRef": "", "tags": ["slow"], "history": ["2025-07-06", "2025-02-09"] },
-    { "id": "161", "title": "I Will Exalt", "artist": "Bethel", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5883501", "bibleRef": "", "tags": ["slow"], "history": ["2025-03-16"] },
-    { "id": "162", "title": "I Won't Go Back", "artist": "William McDowell", "keys": ["D"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "5910977", "bibleRef": "", "tags": ["slow"] },
-    { "id": "163", "title": "I'll Fly Away", "artist": "Traditional", "keys": ["D"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "26399", "bibleRef": "", "tags": ["fast"] },
-    { "id": "164", "title": "In Christ Alone", "artist": "Stuart Townend", "keys": ["C"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "3350395", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-07-13", "2025-06-01", "2025-04-06", "2024-04-14"] },
-    { "id": "165", "title": "In Jesus Name", "artist": "Israel Houghton", "keys": ["C"], "bpm": 128, "sig": "4/4", "yt": "", "ccli": "6180924", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2025-09-21", "2025-09-14", "2024-11-10", "2024-01-28"] },
-    { "id": "166", "title": "In The Highest", "artist": "Hillsong", "keys": ["Ab", "G"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "4879202", "bibleRef": "", "tags": ["slow"], "history": ["2023-12-10"] },
-    { "id": "167", "title": "In The Secret", "artist": "Chris Tomlin", "keys": ["C"], "bpm": 110, "sig": "4/4", "yt": "", "ccli": "1810119", "bibleRef": "", "tags": ["fast"] },
-    { "id": "168", "title": "Indescribable", "artist": "Chris Tomlin", "keys": ["C"], "bpm": 82, "sig": "4/4", "yt": "", "ccli": "4403076", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-05-17", "2024-09-22"] },
-    { "id": "169", "title": "Is He Worthy", "artist": "Andrew Peterson", "keys": ["G"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7108951", "bibleRef": "", "tags": ["slow"], "history": ["2026-05-17", "2025-12-07", "2024-10-13", "2024-01-07", "2023-12-31"] },
-    { "id": "170", "title": "It Came Upon The Midnight Clear", "artist": "Traditional", "keys": ["F"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "31016", "bibleRef": "", "tags": ["slow", "hymn", "christmas"], "history": ["2025-12-24", "2023-12-17"] },
-    { "id": "171", "title": "It Is Well", "artist": "Bethel", "keys": ["G"], "bpm": 65, "sig": "4/4", "yt": "", "ccli": "7021972", "bibleRef": "", "tags": ["slow"], "history": ["2026-03-28"] },
-    { "id": "172", "title": "It Is Well With My Soul", "artist": "Traditional", "keys": ["C"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "25376", "bibleRef": "", "tags": ["slow", "hymn"] },
-    { "id": "173", "title": "Jesus Be The Name", "artist": "Elevation Worship, Tiffany Hudson", "keys": ["Db"], "bpm": 64, "sig": "4/4", "bibleRef": "Philippians 2:9-11", "tags": ["slow"], "yt": "", "ccli": "7268962", "notes": "", "history": ["2026-04-19", "2026-03-22"] },
-    { "id": "174", "title": "Jesus Loves Me", "artist": "Chris Tomlin", "keys": ["D"], "bpm": 82, "sig": "4/4", "bibleRef": "1 John 4:19", "tags": ["slow"], "yt": "", "ccli": "7028829", "notes": "" },
-    { "id": "175", "title": "Jesus Messiah", "artist": "Chris Tomlin", "keys": ["Db"], "bpm": 78, "sig": "4/4", "bibleRef": "2 Corinthians 5:21", "tags": ["slow"], "yt": "", "ccli": "5183443", "notes": "", "history": ["2025-06-22", "2024-04-07"] },
-    { "id": "176", "title": "Jesus Paid It All", "artist": "Kristian Stanfill", "keys": ["B"], "bpm": 77, "sig": "4/4", "bibleRef": "Colossians 2:13-14", "tags": ["slow"], "yt": "", "ccli": "4662491", "notes": "", "history": ["2026-04-05", "2025-10-19", "2025-02-16", "2024-03-30", "2024-03-10"] },
-    { "id": "177", "title": "Joy To The World", "artist": "Traditional", "keys": ["G"], "bpm": 120, "sig": "4/4", "bibleRef": "Psalm 98:4", "tags": ["fast", "christmas"], "yt": "", "ccli": "24016", "notes": "", "history": ["2025-12-21", "2025-12-14", "2024-12-01", "2023-12-03"] },
-    { "id": "178", "title": "Joy Unspeakable Joy", "artist": "Chris Tomlin", "keys": ["G"], "bpm": 132, "sig": "4/4", "bibleRef": "1 Peter 1:8", "tags": ["fast", "christmas"], "yt": "", "ccli": "5607039", "notes": "" },
-    { "id": "179", "title": "King Of Glory", "artist": "Chris Tomlin", "keys": ["B", "C"], "bpm": 100, "sig": "4/4", "bibleRef": "Psalm 24:7-10", "tags": ["medium"], "yt": "", "ccli": "4403588", "notes": "", "history": ["2026-01-25", "2025-10-05", "2024-02-18"] },
-    { "id": "180", "title": "King Of Heaven", "artist": "Paul Baloche", "keys": ["G"], "bpm": 66, "sig": "4/4", "bibleRef": "Isaiah 9:6", "tags": ["slow", "christmas"], "yt": "", "ccli": "5997804", "notes": "", "history": ["2025-12-21", "2024-12-01", "2023-12-17", "2023-12-10"] },
-    { "id": "181", "title": "King Of Kings", "artist": "Hillsong", "keys": ["D"], "bpm": 68, "sig": "4/4", "bibleRef": "1 Timothy 6:15", "tags": ["slow"], "yt": "", "ccli": "7127647", "notes": "", "history": ["2026-01-18", "2025-10-19", "2024-12-22", "2024-07-27", "2024-05-19", "2024-05-05", "2024-04-28"] },
-    { "id": "182", "title": "King Of Majesty", "artist": "Hillsong", "keys": ["G"], "bpm": 116, "sig": "4/4", "bibleRef": "Psalm 145:1", "tags": ["fast"], "yt": "", "ccli": "3441315", "notes": "" },
-    { "id": "183", "title": "King Of My Heart", "artist": "John Mark McMillan", "keys": ["A", "D"], "bpm": 72, "sig": "4/4", "bibleRef": "Psalm 34:8", "tags": ["slow"], "yt": "", "ccli": "7046145", "notes": "", "history": ["2025-03-23", "2024-03-30"] },
-    { "id": "184", "title": "Lead Me To The Cross", "artist": "Hillsong", "keys": ["D"], "bpm": 72, "sig": "4/4", "bibleRef": "Matthew 16:24", "tags": ["slow"], "yt": "", "ccli": "4785828", "notes": "", "history": ["2026-04-12"] },
-    { "id": "185", "title": "Let Everything That Has Breath", "artist": "Matt Redman", "keys": ["C"], "bpm": 124, "sig": "4/4", "bibleRef": "Psalm 150:6", "tags": ["fast"], "yt": "", "ccli": "2403511", "notes": "" },
-    { "id": "186", "title": "Let God Arise", "artist": "Chris Tomlin", "keys": ["C", "D", "Db", "G"], "bpm": 120, "sig": "4/4", "bibleRef": "Psalm 68:1", "tags": ["fast"], "yt": "", "ccli": "4822417", "notes": "" },
-    { "id": "187", "title": "Let It Rise", "artist": "Holland Davis", "keys": ["B", "Bb"], "bpm": 110, "sig": "4/4", "bibleRef": "Psalm 113:3", "tags": ["fast"], "yt": "", "ccli": "2242095", "notes": "", "history": ["2025-11-23", "2025-06-28", "2025-03-16", "2024-11-24", "2024-08-18"] },
-    { "id": "188", "title": "Let The Light In", "artist": "Cody Carnes", "keys": ["C"], "bpm": 78, "sig": "4/4", "bibleRef": "2 Corinthians 4:6", "tags": ["medium"], "yt": "", "ccli": "7144211", "notes": "", "history": ["2024-09-22"] },
-    { "id": "189", "title": "Lift Jesus Higher", "artist": "Traditional", "keys": ["Bb"], "bpm": 130, "sig": "4/4", "bibleRef": "John 12:32", "tags": ["fast"], "yt": "", "ccli": "11729", "notes": "" },
-    { "id": "190", "title": "Lift The Name of Jesus", "artist": "Traditional", "keys": ["D"], "bpm": 120, "sig": "4/4", "bibleRef": "Psalm 34:3", "tags": ["fast"], "yt": "", "ccli": "27738", "notes": "" },
-    { "id": "191", "title": "Like A Fire", "artist": "Planetshakers", "keys": ["Eb"], "bpm": 70, "sig": "4/4", "bibleRef": "Jeremiah 20:9", "tags": ["slow"], "yt": "", "ccli": "6025287", "notes": "" },
-    { "id": "192", "title": "Look What The Lord Has Done", "artist": "Traditional", "keys": ["D"], "bpm": 126, "sig": "4/4", "bibleRef": "Psalm 126:3", "tags": ["fast"], "yt": "", "ccli": "27738", "notes": "" },
-    { "id": "193", "title": "Lord I Am Broken", "artist": "Traditional", "keys": ["C"], "bpm": 65, "sig": "4/4", "bibleRef": "Psalm 34:18", "tags": ["slow"], "yt": "", "ccli": "14181", "notes": "" },
-    { "id": "194", "title": "Lord I Lift Your Name on High", "artist": "Rick Founds", "keys": ["F"], "bpm": 120, "sig": "4/4", "bibleRef": "Psalm 30:1", "tags": ["fast"], "yt": "", "ccli": "117947", "notes": "" },
-    { "id": "195", "title": "Lord I Need You", "artist": "Matt Maher", "keys": ["B"], "bpm": 74, "sig": "4/4", "bibleRef": "Matthew 11:28", "tags": ["slow"], "yt": "", "ccli": "5925687", "notes": "", "history": ["2025-11-09"] },
-    { "id": "196", "title": "Love Came Down", "artist": "Bethel", "keys": ["C"], "bpm": 72, "sig": "4/4", "bibleRef": "1 John 4:9", "tags": ["slow"], "yt": "", "ccli": "5920352", "notes": "" },
-    { "id": "197", "title": "Love Knows No End", "artist": "Hillsong", "keys": ["D"], "bpm": 76, "sig": "4/4", "bibleRef": "Ephesians 3:18-19", "tags": ["slow"], "yt": "", "ccli": "5639832", "notes": "" },
-    { "id": "198", "title": "Love the Lord", "artist": "Lincoln Brewster", "keys": ["D"], "bpm": 112, "sig": "4/4", "bibleRef": "Mark 12:30", "tags": ["fast"], "yt": "", "ccli": "4572938", "notes": "" },
-    { "id": "199", "title": "Made Me Glad", "artist": "Miriam Webster", "keys": ["Bb"], "bpm": 72, "sig": "4/4", "bibleRef": "Psalm 92:4", "tags": ["slow"], "yt": "", "ccli": "3290644", "notes": "", "history": ["2025-08-10"] },
-    { "id": "200", "title": "Magnify The Lord", "artist": "Traditional", "keys": ["F"], "bpm": 125, "sig": "4/4", "bibleRef": "Luke 1:46", "tags": ["fast"], "yt": "", "ccli": "11729", "notes": "" },
-    { "id": "201", "title": "Majestic", "artist": "Lincoln Brewster", "keys": ["B", "G"], "bpm": 112, "sig": "4/4", "bibleRef": "Psalm 8:1", "tags": ["fast"], "yt": "", "ccli": "4572938", "notes": "", "history": ["2024-11-10"] },
-    { "id": "202", "title": "Majesty", "artist": "Jack Hayford", "keys": ["E"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "1527", "bibleRef": "", "tags": ["slow"] },
-    { "id": "203", "title": "Make Room", "artist": "The Belonging Co", "keys": ["F#"], "bpm": 58, "sig": "4/4", "yt": "", "ccli": "7122057", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-01-04", "2025-06-15", "2025-02-16", "2024-07-21", "2024-05-26"] },
-    { "id": "204", "title": "Marvelous Light", "artist": "Charlie Hall", "keys": ["Db"], "bpm": 122, "sig": "4/4", "yt": "", "ccli": "4556538", "bibleRef": "", "tags": ["fast"] },
-    { "id": "205", "title": "Mary Did You Know", "artist": "Mark Lowry", "keys": ["Am"], "bpm": 53, "sig": "4/4", "yt": "", "ccli": "839225", "bibleRef": "", "tags": ["slow", "christmas"] },
-    { "id": "206", "title": "Mighty Breath Of God", "artist": "Jeremy Riddle", "keys": ["Bb", "Db", "Eb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "5161619", "bibleRef": "", "tags": ["slow"], "history": ["2024-02-18"] },
-    { "id": "207", "title": "Mighty To Save", "artist": "Hillsong", "keys": ["D"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "4591782", "bibleRef": "", "tags": ["slow"], "history": ["2024-10-06", "2024-04-28", "2023-12-03"] },
-    { "id": "208", "title": "More And More", "artist": "Israel Houghton", "keys": ["G"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "4455213", "bibleRef": "", "tags": ["slow"], "history": ["2024-03-10"] },
-    { "id": "209", "title": "More Like Jesus", "artist": "Passion", "keys": ["C"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7107484", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-05-25", "2024-06-09", "2024-05-05", "2024-03-10"] },
-    { "id": "210", "title": "More Love More Power", "artist": "Michael W. Smith", "keys": ["Em"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "19717", "bibleRef": "", "tags": ["slow"] },
-    { "id": "211", "title": "Moving Forward", "artist": "Israel Houghton", "keys": ["A"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "4991035", "bibleRef": "", "tags": ["slow"] },
-    { "id": "212", "title": "My Beloved", "artist": "Crowder", "keys": ["C"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "7102392", "bibleRef": "", "tags": ["fast"] },
-    { "id": "213", "title": "My God (When The Praises Go Up)", "artist": "Israel Houghton", "keys": ["Db"], "bpm": 124, "sig": "4/4", "yt": "", "ccli": "4034425", "bibleRef": "", "tags": ["fast"] },
-    { "id": "214", "title": "My Hope Is Built", "artist": "Traditional", "keys": ["D"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "25417", "bibleRef": "", "tags": ["slow", "hymn"], "history": ["2026-02-15"] },
-    { "id": "215", "title": "My Jesus I Love Thee", "artist": "Traditional", "keys": ["C"], "bpm": 62, "sig": "4/4", "yt": "", "ccli": "27817", "bibleRef": "", "tags": ["slow", "hymn", "response"], "history": ["2026-01-18", "2025-09-14", "2025-01-19"] },
-    { "id": "216", "title": "My Redeemer Lives", "artist": "Hillsong", "keys": ["E"], "bpm": 122, "sig": "4/4", "yt": "", "ccli": "2397964", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2025-02-09"] },
-    { "id": "217", "title": "My Soul Magnifies The Lord", "artist": "Chris Tomlin", "keys": ["D"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "5607053", "bibleRef": "", "tags": ["fast", "opener", "christmas"], "history": ["2025-12-21", "2024-12-22", "2024-12-08", "2023-12-10"] },
-    { "id": "218", "title": "My Tribute", "artist": "Andraé Crouch", "keys": ["C"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "11218", "bibleRef": "", "tags": ["slow"] },
-    { "id": "219", "title": "Never Once", "artist": "Matt Redman", "keys": ["B"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5997055", "bibleRef": "", "tags": ["slow"] },
-    { "id": "220", "title": "No Longer Slaves", "artist": "Bethel", "keys": ["Bb"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "7030123", "bibleRef": "", "tags": ["slow"], "history": ["2026-02-22", "2025-11-02", "2025-08-10", "2025-06-01",] },
-    { "id": "221", "title": "None But Jesus", "artist": "Hillsong", "keys": ["C"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "4705152", "bibleRef": "", "tags": ["slow"] },
-    { "id": "222", "title": "Not To Us", "artist": "Chris Tomlin", "keys": ["Eb"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "4031071", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-04-19", "2025-08-24", "2024-08-25", "2024-07-07"] },
-    { "id": "223", "title": "Nothing But The Blood", "artist": "Matt Redman", "keys": ["Bb", "Db"], "bpm": 105, "sig": "4/4", "yt": "", "ccli": "4329411", "bibleRef": "", "tags": ["medium", "opener"], "history": ["2024-02-25"] },
-    { "id": "224", "title": "O Come All Ye Faithful", "artist": "Traditional", "keys": ["C", "D"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "31054", "bibleRef": "", "tags": ["slow", "hymn", "christmas", "response"], "history": ["2025-12-21", "2025-12-14", "2024-12-08", "2023-12-10"] },
-    { "id": "225", "title": "O Come O Come Emmanuel", "artist": "Traditional", "keys": ["C"], "bpm": 55, "sig": "4/4", "yt": "", "ccli": "31982", "bibleRef": "", "tags": ["slow", "hymn", "christmas"], "history": ["2025-12-24", "2024-12-22", "2023-12-24", "2023-12-10"] },
-    { "id": "226", "title": "O Come To The Altar", "artist": "Elevation Worship", "keys": ["C"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7051511", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-02-15", "2024-09-08", "2024-07-27", "2024-07-14", "2024-01-28"] },
-    { "id": "227", "title": "O Holy Night", "artist": "Traditional", "keys": ["F", "G"], "bpm": 65, "sig": "4/4", "yt": "", "ccli": "32015", "bibleRef": "", "tags": ["slow", "hymn", "christmas"], "history": ["2025-12-24", "2023-12-17"] },
-    { "id": "228", "title": "O Little Town Of Bethlehem", "artist": "Traditional", "keys": ["Eb"], "bpm": 62, "sig": "4/4", "yt": "", "ccli": "27879", "bibleRef": "", "tags": ["slow", "hymn", "christmas"], "history": ["2025-12-24"] },
-    { "id": "229", "title": "O Praise Him", "artist": "David Crowder", "keys": ["Db"], "bpm": 84, "sig": "4/4", "yt": "", "ccli": "4158023", "bibleRef": "", "tags": ["medium"] },
-    { "id": "230", "title": "O The Blood", "artist": "Gateway Worship", "keys": ["Eb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "5620412", "bibleRef": "", "tags": ["slow"] },
-    { "id": "231", "title": "Oceans (Where Feet May Fail)", "artist": "Hillsong", "keys": ["D"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "6428767", "bibleRef": "", "tags": ["slow"], "history": ["2026-03-28", "2026-03-15", "2024-05-26"] },
-    { "id": "232", "title": "One Thing Remains", "artist": "Jesus Culture", "keys": ["C"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "5508444", "bibleRef": "", "tags": ["slow"], "history": ["2026-05-03", "2025-11-23", "2024-11-24"] },
-    { "id": "233", "title": "Only King Forever", "artist": "Elevation Worship", "keys": ["C"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "7011438", "bibleRef": "", "tags": ["fast"] },
-    { "id": "234", "title": "Open The Eyes Of My Heart", "artist": "Paul Baloche", "keys": ["Ab", "C", "D"], "bpm": 105, "sig": "4/4", "yt": "", "ccli": "2691540", "bibleRef": "", "tags": ["medium", "response"], "history": ["2025-06-28"] },
-    { "id": "235", "title": "Open Up The Heavens", "artist": "Meredith Andrews", "keys": ["Bb"], "bpm": 98, "sig": "4/4", "yt": "", "ccli": "6304702", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-05-17", "2025-11-30", "2025-06-08", "2025-03-23", "2024-10-27", "2023-11-26"] },
-    { "id": "236", "title": "Open Up The Sky", "artist": "Delirious?", "keys": ["E"], "bpm": 82, "sig": "4/4", "yt": "", "ccli": "4749448", "bibleRef": "", "tags": ["medium"], "history": ["2025-05-11"] },
-    { "id": "237", "title": "Our God", "artist": "Chris Tomlin", "keys": ["D"], "bpm": 105, "sig": "4/4", "yt": "", "ccli": "5677414", "bibleRef": "", "tags": ["medium", "opener"], "history": ["2025-06-22", "2024-09-29"] },
-    { "id": "238", "title": "Our King Has Come", "artist": "Zachary Loomis", "keys": ["C", "Db", "E"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7033503", "bibleRef": "", "tags": ["slow"], "history": ["2024-11-30"] },
-    { "id": "239", "title": "Power in the Blood", "artist": "Traditional", "keys": ["Eb"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "11729", "bibleRef": "", "tags": ["fast", "hymn"] },
-    { "id": "240", "title": "Praise Before My Breakthrough", "artist": "Bryan & Katie Torwalt", "keys": ["Db", "E"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7110321", "bibleRef": "", "tags": ["slow"], "history": ["2026-02-08", "2024-01-28"] },
-    { "id": "241", "title": "Praise Of Heaven", "artist": "Zachery Dusing", "keys": ["E"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["slow", "original"], "history": ["2024-10-13", "2024-09-29"] },
-    { "id": "242", "title": "Prepare Him Room", "artist": "Sovereign Grace", "keys": ["G"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "7027157", "bibleRef": "", "tags": ["medium"], "history": ["2025-12-07", "2024-12-15", "2023-12-24"] },
-    { "id": "243", "title": "Psalm 23 I Am Not Alone", "artist": "Joshua Sherman", "keys": ["D"], "bpm": 63, "sig": "4/4", "yt": "", "ccli": "7111981", "bibleRef": "Psalm 23", "tags": ["slow"], "history": ["2025-08-24", "2024-08-25", "2024-04-21"] },
-    { "id": "244", "title": "Psalm 46 (Lord Of Hosts)", "artist": "Shane & Shane", "keys": ["C#m"], "bpm": 69, "sig": "4/4", "yt": "", "ccli": "7053138", "bibleRef": "", "tags": ["slow"], "history": ["2026-01-11", "2025-06-15", "2024-07-27"] },
-    { "id": "245", "title": "Raise A Hallelujah", "artist": "Bethel", "keys": ["Db"], "bpm": 82, "sig": "4/4", "yt": "", "ccli": "7119315", "bibleRef": "", "tags": ["medium", "response"], "history": ["2025-10-19", "2024-12-29", "2024-03-24", "2024-01-07", "2023-12-03"] },
-    { "id": "246", "title": "Rescue", "artist": "Lauren Daigle", "keys": ["Ab"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7113110", "bibleRef": "", "tags": ["slow"] },
-    { "id": "247", "title": "Rest On Us", "artist": "Maverick City", "keys": ["Bb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7160295", "bibleRef": "", "tags": ["slow"], "history": ["2026-05-24", "2026-05-03", "2025-08-03", "2025-06-08", "2025-03-09", "2024-03-30", "2024-02-25"] },
-    { "id": "248", "title": "Resurrecting", "artist": "Elevation Worship", "keys": ["Db"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "7051510", "bibleRef": "", "tags": ["slow"] },
-    { "id": "249", "title": "Revelation Song", "artist": "Kari Jobe", "keys": ["D"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "4447960", "bibleRef": "", "tags": ["slow"], "history": ["2025-12-07", "2025-11-23", "2024-11-24", "2024-08-11", "2024-03-17"] },
-    { "id": "250", "title": "Rooftops", "artist": "Jesus Culture", "keys": ["E"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "5881020", "bibleRef": "", "tags": ["medium"], "history": ["2025-07-13"] },
-    { "id": "251", "title": "Savior King", "artist": "Hillsong", "keys": ["E"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "4879202", "bibleRef": "", "tags": ["slow"] },
-    { "id": "252", "title": "Say So", "artist": "Israel Houghton", "keys": ["Db"], "bpm": 125, "sig": "4/4", "yt": "", "ccli": "4556552", "bibleRef": "", "tags": ["fast"] },
-    { "id": "253", "title": "Say The Name", "artist": "Martha Munizzi", "keys": ["D", "Eb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "3675032", "bibleRef": "", "tags": ["slow"] },
-    { "id": "254", "title": "Seek First", "artist": "Housefires", "keys": ["F"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7070345", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-04-19", "2025-09-07", "2024-11-03", "2024-02-25"] },
-    { "id": "255", "title": "Set A Fire", "artist": "Will Reagan", "keys": ["Eb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "6087919", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-04-21"] },
-    { "id": "256", "title": "Silent Night", "artist": "Traditional", "keys": ["G"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "27893", "bibleRef": "", "tags": ["slow", "hymn", "christmas"], "history": ["2025-12-24", "2023-12-24"] },
-    { "id": "257", "title": "Sing It Out", "artist": "Zachery Dusing", "keys": ["G"], "bpm": 112, "sig": "4/4", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["fast", "original"] },
-    { "id": "258", "title": "Sing Sing Sing", "artist": "Chris Tomlin", "keys": ["Eb"], "bpm": 115, "sig": "4/4", "yt": "", "ccli": "5124055", "bibleRef": "", "tags": ["fast"] },
-    { "id": "259", "title": "Sing To The King", "artist": "Billy J. Foote", "keys": ["D"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "4034425", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-04-05", "2025-12-07", "2025-04-13", "2024-12-08", "2024-04-28", "2023-12-24"] },
-    { "id": "260", "title": "So Will I", "artist": "Hillsong", "keys": ["D"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "7084128", "bibleRef": "", "tags": ["slow"], "history": ["2024-10-27", "2024-06-02", "2024-05-12", "2024-02-25"] },
-    { "id": "261", "title": "Song For The Bride", "artist": "Brian Doerksen", "keys": ["E"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "4034346", "bibleRef": "", "tags": ["slow"] },
-    { "id": "262", "title": "Speak The Name", "artist": "Koryn Hawthorne", "keys": ["Ab"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "7088647", "bibleRef": "", "tags": ["slow"] },
-    { "id": "263", "title": "Spirit Break Out", "artist": "Luke Hellebronth", "keys": ["G"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "6058450", "bibleRef": "", "tags": ["slow"] },
-    { "id": "264", "title": "Start A Fire", "artist": "Unspoken", "keys": ["E"], "bpm": 100, "sig": "4/4", "yt": "", "ccli": "7023163", "bibleRef": "", "tags": ["slow"] },
-    { "id": "265", "title": "Step By Step", "artist": "Rich Mullins", "keys": ["F"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "69472", "bibleRef": "", "tags": ["slow"] },
-    { "id": "266", "title": "Still", "artist": "Hillsong", "keys": ["A", "Bb"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "3940963", "bibleRef": "", "tags": ["slow"], "history": ["2025-08-03", "2024-11-30"] },
-    { "id": "267", "title": "Stronger", "artist": "Hillsong", "keys": ["A"], "bpm": 73, "sig": "4/4", "yt": "", "ccli": "5060810", "bibleRef": "", "tags": ["slow"] },
-    { "id": "268", "title": "Surely The Presence of the Lord", "artist": "Lanny Wolfe", "keys": ["A"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "7909", "bibleRef": "", "tags": ["slow"] },
-    { "id": "269", "title": "Surrounded / Fight My Battles", "artist": "Upperroom", "keys": ["F"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7107563", "bibleRef": "", "tags": ["slow"], "history": ["2025-10-12", "2024-01-07"] },
-    { "id": "270", "title": "Sweetly Broken", "artist": "Jeremy Camp", "keys": ["Eb"], "bpm": 80, "sig": "4/4", "yt": "", "ccli": "4514635", "bibleRef": "", "tags": ["medium"] },
-    { "id": "271", "title": "Take Me In", "artist": "Kutless", "keys": ["C#m"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "17590", "bibleRef": "", "tags": ["slow"] },
-    { "id": "272", "title": "Teu Espirito", "artist": "Fernandinho", "keys": ["G"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7115852", "bibleRef": "", "tags": ["slow"], "history": ["2025-08-17", "2024-08-18", "2024-07-28"] },
-    { "id": "273", "title": "Thank You Jesus For The Blood", "artist": "Charity Gayle", "keys": ["Bb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7169680", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-04-05", "2025-10-12", "2025-08-31", "2024-09-01", "2024-03-31", "2024-03-03"] },
-    { "id": "274", "title": "The Anthem", "artist": "Planetshakers", "keys": ["Db", "E"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5060717", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-04-20", "2024-11-30", "2024-11-17"] },
-    { "id": "275", "title": "The Father's House", "artist": "Cory Asbury", "keys": ["G"], "bpm": 81, "sig": "4/4", "yt": "", "ccli": "7138062", "bibleRef": "", "tags": ["medium"], "history": ["2025-09-07", "2024-03-03"] },
-    { "id": "276", "title": "The Heart of Worship", "artist": "Matt Redman", "keys": ["Bb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "2296522", "bibleRef": "", "tags": ["slow"], "history": ["2025-06-28", "2024-09-08", "2023-11-26"] },
-    { "id": "277", "title": "The Joy", "artist": "The Belonging Co", "keys": ["E"], "bpm": 132, "sig": "4/4", "yt": "", "ccli": "7107530", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-05-10", "2026-01-11", "2025-10-26", "2025-07-27", "2025-06-01", "2024-09-15", "2024-12-01", "2024-07-28", "2024-07-27", "2024-07-14", "2024-03-30"] },
-    { "id": "278", "title": "The Lion and the Lamb", "artist": "Bethel", "keys": ["B"], "bpm": 90, "sig": "4/4", "yt": "", "ccli": "7038281", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-05-10", "2026-02-15", "2025-11-02", "2025-10-05", "2025-09-14", "2025-03-16", "2024-03-31", "2024-02-18"] },
-    { "id": "279", "title": "The Lord Reigns", "artist": "Dan Moen", "keys": ["C", "F"], "bpm": 124, "sig": "4/4", "yt": "", "ccli": "21361", "bibleRef": "", "tags": ["fast", "key change"] },
-    { "id": "280", "title": "The More I Seek You", "artist": "Zach Neese", "keys": ["Eb"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "2740924", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-07-20"] },
-    { "id": "281", "title": "The Name of The Lord", "artist": "Clinton Utterbach", "keys": ["Db", "Eb"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "265239", "bibleRef": "Proverbs 18:10", "tags": ["fast", "opener"], "history": ["2025-01-12"] },
-    { "id": "282", "title": "The Potter's Hand", "artist": "Darlene Zschech", "keys": ["Eb", "F"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "2449115", "bibleRef": "", "tags": ["slow"] },
-    { "id": "283", "title": "The Power Of Your Love", "artist": "Geoff Bullock", "keys": ["F"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "917491", "bibleRef": "", "tags": ["slow"] },
-    { "id": "284", "title": "The Stand", "artist": "Hillsong", "keys": ["F"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "4705248", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-06-28", "2025-06-22"] },
-    { "id": "285", "title": "There's Something About That Name", "artist": "Bill Gaither", "keys": ["Eb"], "bpm": 60, "sig": "4/4", "yt": "", "ccli": "14064", "bibleRef": "", "tags": ["slow"], "history": ["2024-06-02", "2024-05-12"] },
-    { "id": "286", "title": "This I Believe", "artist": "Hillsong", "keys": ["D"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7018338", "bibleRef": "", "tags": ["medium"] },
-    { "id": "287", "title": "This Is Amazing Grace", "artist": "Phil Wickham", "keys": ["D", "Db"], "bpm": 98, "sig": "4/4", "yt": "", "ccli": "6333481", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2026-05-03", "2026-02-08", "2025-06-15", "2025-02-09", "2024-03-17"] },
-    { "id": "288", "title": "This Is How We Overcome", "artist": "Hillsong", "keys": ["A"], "bpm": 128, "sig": "4/4", "yt": "", "ccli": "2190590", "bibleRef": "", "tags": ["fast"] },
-    { "id": "289", "title": "This Is The Day", "artist": "Les Garrett", "keys": ["Bb"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "32754", "bibleRef": "", "tags": ["fast", "key change"] },
-    { "id": "290", "title": "To Him Who Sits On The Throne", "artist": "Debanye Brunette", "keys": ["Ab", "G"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "20512", "bibleRef": "", "tags": ["slow"], "history": ["2025-07-20", "2024-04-28"] },
-    { "id": "291", "title": "To Worship You I Live", "artist": "Israel Houghton", "keys": ["Db"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "4455244", "bibleRef": "", "tags": ["slow"] },
-    { "id": "292", "title": "Trading My Sorrows", "artist": "Darrell Evans", "keys": ["E"], "bpm": 125, "sig": "4/4", "yt": "", "ccli": "3223886", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2025-07-27", "2024-01-21"] },
-    { "id": "293", "title": "Turn Your Eyes Upon Jesus", "artist": "Traditional", "keys": ["Ab", "Bb", "E"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "1596", "bibleRef": "", "tags": ["slow", "hymn"], "history": ["2026-04-26", "2025-11-16", "2023-11-26"] },
-    { "id": "294", "title": "Victor's Crown", "artist": "Darlene Zschech", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "6454625", "bibleRef": "", "tags": ["slow"] },
-    { "id": "295", "title": "Victory In Jesus", "artist": "Traditional", "keys": ["B", "Eb"], "bpm": 88, "sig": "4/4", "yt": "", "ccli": "12517", "bibleRef": "", "tags": ["fast", "hymn", "opener"], "history": ["2024-03-31"] },
-    { "id": "296", "title": "Wait on You", "artist": "Elevation & Maverick", "keys": ["Bb"], "bpm": 70, "sig": "6/8", "yt": "", "ccli": "7171578", "bibleRef": "", "tags": ["slow"] },
-    { "id": "297", "title": "Waiting Here For You", "artist": "Christy Nockels", "keys": ["Bb", "C", "E", "Eb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5925663", "bibleRef": "", "tags": ["slow"], "history": ["2024-12-08"] },
-    { "id": "298", "title": "Waymaker", "artist": "Sinach", "keys": ["D"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7115744", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-07-27", "2024-06-30", "2024-05-19", "2023-12-31"] },
-    { "id": "299", "title": "We Are Hungry", "artist": "Jesus Culture", "keys": ["A"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5702111", "bibleRef": "", "tags": ["slow"] },
-    { "id": "300", "title": "We Believe", "artist": "Newsboys", "keys": ["C"], "bpm": 80, "sig": "4/4", "yt": "", "ccli": "6367165", "bibleRef": "", "tags": ["fast"] },
-    { "id": "301", "title": "We Fall Down", "artist": "Chris Tomlin", "keys": ["D"], "bpm": 67, "sig": "4/4", "yt": "", "ccli": "3097328", "bibleRef": "", "tags": ["slow"], "history": ["2026-05-10", "2025-11-23", "2025-10-12", "2025-03-09", "2024-11-24", "2024-03-30"] },
-    { "id": "302", "title": "We Will Dance", "artist": "David Ruis", "keys": ["B"], "bpm": 124, "sig": "4/4", "yt": "", "ccli": "1029238", "bibleRef": "", "tags": ["fast"] },
-    { "id": "303", "title": "We Will Feast in the House of Zion", "artist": "Sandra McCracken", "keys": ["E"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7041364", "bibleRef": "", "tags": ["slow"] },
-    { "id": "304", "title": "Welcome Holy Spirit", "artist": "Jimmy Swaggart", "keys": ["C", "Db"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "27738", "bibleRef": "", "tags": ["fast", "opener"], "history": ["2024-03-24"] },
-    { "id": "305", "title": "What A Beautiful Name", "artist": "Hillsong", "keys": ["D"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7068424", "bibleRef": "", "tags": ["slow"], "history": ["2026-02-22", "2025-11-09", "2025-05-25", "2025-01-26"] },
-    { "id": "306", "title": "What A Mighty God We Serve", "artist": "Traditional", "keys": ["Ab"], "bpm": 125, "sig": "4/4", "yt": "", "ccli": "27738", "bibleRef": "", "tags": ["fast", "key change"] },
-    { "id": "307", "title": "What Child Is This", "artist": "Traditional", "keys": ["Cm"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "30973", "bibleRef": "", "tags": ["slow", "christmas"], "history": ["2025-12-24", "2024-12-22"] },
-    { "id": "308", "title": "What Love Is This", "artist": "Kari Jobe", "keys": ["Ab", "G"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "6364821", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-09-08"] },
-    { "id": "309", "title": "What We Were", "artist": "Zachery Dusing", "keys": ["Db"], "bpm": 64, "sig": "6/8", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["slow", "original"], "history": ["2024-08-11", "2024-02-11"] },
-    { "id": "310", "title": "When I Think About The Lord", "artist": "James Huey", "keys": ["C"], "bpm": 124, "sig": "4/4", "yt": "", "ccli": "3441315", "bibleRef": "", "tags": ["medium"] },
-    { "id": "311", "title": "When You Walk Into The Room", "artist": "Bryan & Katie Torwalt", "keys": ["Bb"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7016301", "bibleRef": "", "tags": ["slow"], "history": ["2026-05-10", "2025-03-30", "2025-03-09", "2024-03-30"] },
-    { "id": "312", "title": "Where You Go I Go", "artist": "Jesus Culture", "keys": ["Dm"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "5161619", "bibleRef": "", "tags": ["slow"] },
-    { "id": "313", "title": "Who You Say I Am", "artist": "Hillsong", "keys": ["F#"], "bpm": 58, "sig": "4/4", "yt": "", "ccli": "7102401", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-07-20", "2025-05-25", "2025-05-18"] },
-    { "id": "314", "title": "Withholding Nothing", "artist": "William McDowell", "keys": ["A", "C"], "bpm": 64, "sig": "4/4", "yt": "", "ccli": "7003449", "bibleRef": "", "tags": ["slow", "response"], "history": ["2025-03-16"] },
-    { "id": "315", "title": "Wonderful Merciful Savior", "artist": "Selah", "keys": ["Ab"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "106482", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-10-13"] },
-    { "id": "316", "title": "Worship The Lord", "artist": "Traditional", "keys": ["B"], "bpm": 128, "sig": "4/4", "yt": "", "ccli": "11729", "bibleRef": "", "tags": ["fast"] },
-    { "id": "317", "title": "Worshipping You", "artist": "Israel Houghton", "keys": ["Ab"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "4455213", "bibleRef": "", "tags": ["slow"] },
-    { "id": "318", "title": "Worthy Is The Lamb", "artist": "Hillsong", "keys": ["G"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "3217563", "bibleRef": "", "tags": ["slow"], "history": ["2023-11-26"] },
-    { "id": "319", "title": "Worthy Of It All", "artist": "CeCe Winans", "keys": ["C", "F"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "6280644", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-03-01", "2025-10-26", "2025-10-05", "2025-08-24", "2024-12-08", "2024-08-25", "2024-04-07"] },
-    { "id": "320", "title": "Worthy Of The Calling", "artist": "Zachery Dusing", "keys": ["Bb"], "bpm": 75, "sig": "4/4", "yt": "", "ccli": "ORIGINAL", "bibleRef": "", "tags": ["slow", "original"], "history": ["2026-05-10", "2026-02-22", "2025-12-28"] },
-    { "id": "321", "title": "Wrap Me In Your Arms ", "artist": "Daniel Grothe", "keys": ["Bm", "Gm"], "bpm": 73, "sig": "4/4", "bibleRef": "", "tags": ["slow", "response"], "yt": "", "ccli": "4624271", "notes": "" },
-    { "id": "322", "title": "Yahweh", "artist": "Hillsong, Reuben Morgan", "keys": ["G"], "bpm": 125, "sig": "4/4", "yt": "", "ccli": "5409086", "bibleRef": "", "tags": ["slow"] },
-    { "id": "323", "title": "Yes And Amen", "artist": "Housefires", "keys": ["G"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7048885", "bibleRef": "", "tags": ["slow"], "history": ["2026-01-04", "2024-11-30", "2024-10-27", "2024-10-06"] },
-    { "id": "324", "title": "Yes I Will", "artist": "Vertical Worship", "keys": ["E"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "7105442", "bibleRef": "", "tags": ["slow"], "history": ["2026-02-15", "2026-01-11", "2025-05-11", "2025-01-26", "2024-03-30"] },
-    { "id": "325", "title": "You Are God Alone", "artist": "Phillips, Craig & Dean", "keys": ["Ab"], "bpm": 74, "sig": "4/4", "yt": "", "ccli": "4243463", "bibleRef": "", "tags": ["slow"] },
-    { "id": "326", "title": "You Are Holy/Prince of Peace", "artist": "Michael W. Smith", "keys": ["D"], "bpm": 118, "sig": "4/4", "yt": "", "ccli": "3950331", "bibleRef": "", "tags": ["fast"], "history": ["2024-03-10"] },
-    { "id": "327", "title": "You Are In Control", "artist": "Maranatha! Music", "keys": ["D"], "bpm": 82, "sig": "4/4", "yt": "", "ccli": "2650364", "bibleRef": "", "tags": ["medium"], "history": ["2025-01-26", "2024-11-03", "2024-01-14"] },
-    { "id": "328", "title": "You Are My King (Amazing Love)", "artist": "Chris Tomlin", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "2456623", "bibleRef": "", "tags": ["slow", "response"] },
-    { "id": "329", "title": "You Are My Strength", "artist": "Hillsong", "keys": ["D"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "4869940", "bibleRef": "", "tags": ["slow"] },
-    { "id": "330", "title": "You Deserve The Glory", "artist": "Terry MacAlmon", "keys": ["G"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "3582297", "bibleRef": "", "tags": ["slow", "response"], "history": ["2026-03-08", "2024-06-23", "2024-06-16"] },
-    { "id": "331", "title": "You Never Let Go", "artist": "Matt Redman", "keys": ["B"], "bpm": 76, "sig": "4/4", "yt": "", "ccli": "4674122", "bibleRef": "", "tags": ["slow"] },
-    { "id": "332", "title": "You're Worthy of My Praise", "artist": "Shane & Shane", "keys": ["E", "F"], "bpm": 100, "sig": "4/4", "yt": "", "ccli": "487971", "bibleRef": "", "tags": ["medium", "response"], "history": ["2025-09-28", "2024-12-15", "2024-02-11"] },
-    { "id": "333", "title": "Your Grace is Enough", "artist": "Chris Tomlin", "keys": ["Eb", "G"], "bpm": 120, "sig": "4/4", "yt": "", "ccli": "4477026", "bibleRef": "", "tags": ["medium"], "history": ["2026-04-12", "2025-08-24", "2024-08-25", "2024-04-14"] },
-    { "id": "334", "title": "Your Great Name", "artist": "Natalie Grant", "keys": ["G"], "bpm": 73, "sig": "4/4", "yt": "", "ccli": "5397073", "bibleRef": "", "tags": ["slow"] },
-    { "id": "335", "title": "Your Love Never Fails", "artist": "Jesus Culture", "keys": ["Eb"], "bpm": 114, "sig": "4/4", "yt": "", "ccli": "5075213", "bibleRef": "", "tags": ["medium"], "history": ["2024-08-04", "2024-07-28"] },
-    { "id": "336", "title": "Your Presence Is Heaven", "artist": "Israel Houghton", "keys": ["C"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "6219174", "bibleRef": "", "tags": ["slow", "response"], "history": ["2024-09-29", "2024-09-22", "2024-04-07"] },
-    { "id": "337", "title": "Angels We Have Heard On High", "artist": "Traditional", "keys": ["D"], "bpm": 112, "sig": "4/4", "yt": "", "ccli": "7014589", "bibleRef": "", "tags": ["fast", "christmas"], "notes": "", "history": ["2025-12-14", "2024-12-08", "2023-12-17"] },
-    { "id": "338", "title": "Come Lord Jesus", "artist": ["Dominique Hughes", "Jeremy Riddle"], "keys": ["C"], "bpm": 68, "sig": "4/4", "yt": "", "ccli": "7199923", "bibleRef": "", "tags": ["slow"], "notes": "", "history": ["2026-05-03", "2026-01-18", "2025-09-14", "2025-08-10", "2025-06-28"] },
-    { "id": "339", "title": "Enough", "artist": ["Chris Tomlin", "Louie Giglio"], "keys": ["A"], "bpm": 77, "sig": "4/4", "yt": "", "ccli": "3599479", "bibleRef": "", "tags": ["slow"], "notes": "", "history": ["2026-03-29", "2026-03-28"] },
-    { "id": "340", "title": "Reckless Love", "artist": "Cory Asbury", "keys": ["F#"], "bpm": 56, "sig": "6/8", "yt": "", "ccli": "7089641", "bibleRef": "", "tags": ["slow"], "notes": "Paired with Even If", "history": ["2026-03-29", "2026-03-28"] },
-    { "id": "341", "title": "Even If", "artist": ["Bart Millard", "MercyMe"], "keys": ["F#"], "bpm": 55, "sig": "6/8", "yt": "", "ccli": "7079513", "bibleRef": "", "tags": ["slow"], "notes": "Chorus and Bridge only, paired with Reckless Love.", "history": ["2026-03-29", "2026-03-28"] },
-    { "id": "342", "title": "Living Hope", "artist": "Phil Wickham", "keys": ["A"], "bpm": 72, "sig": "4/4", "yt": "", "ccli": "7106807", "bibleRef": "", "tags": ["slow"], "notes": "", "history": ["2026-02-15", "2025-11-02"] },
-    { "id": "343", "title": "I Know A Name", "artist": "Brandon Lake, Elevation Worship", "keys": ["C"], "bpm": 58, "sig": "6/8", "yt": "", "ccli": "7247990", "bibleRef": "", "tags": ["medium"], "notes": "", "history": ["2026-04-05", "2026-03-15", "2026-03-21"] },
-    { "id": "344", "title": "God You're So Good", "artist": ["Passion", "Brooke Ligertwood", "Kristian Stanfill"], "keys": ["TBD"], "bpm": 70, "sig": "4/4", "yt": "", "ccli": "7105729", "bibleRef": "", "tags": ["slow", "tbd"], "notes": "Key TBD For Worship Night", "history": ["2026-06-20"] },
-    { "id": "345", "title": "Such An Awesome God", "artist": ["Maverick City", "Maryanne J. George"], "keys": ["TBD"], "bpm": 66, "sig": "4/4", "yt": "", "ccli": "7130622", "bibleRef": "", "tags": ["slow"], "notes": "Key TBD For Worship Night", "history": ["2026-06-20"] }
+    {"id":"1","title":"10,000 Reasons Bless The Lord","artist":"Matt Redman","keys":["C"],"bpm":73,"sig":"4/4","yt":"https://www.youtube.com/watch?v=DXDGE_lRI0E","ccli":"6016351","bibleRef":"Psalm 103:1","tags":["slow"],"history":["2026-08-09","2024-06-02","2024-05-12"]},
+    {"id":"2","title":"10,001 Repetitions of the song title that never ends it goes on and on my friends, some coder started typing it to troubleshoot some bugs","artist":["Chris Tomlin","Michael W. Smith","Israel Houghton","Brandon Lake"],"keys":["A","B","C","D","E","F","G"],"bpm":128,"sig":"4/4","bibleRef":"Ephesians 5:18-20","tags":["medium","response","hymn","christmas"],"yt":"","ccli":"7017044","notes":"...and he'll keep on typing it forever just because this is the note that never ends. This is the note that never ends, it goes on and on my friends, he forgot to stand up and stretch not knowing what it was, and he'll keep on sitting here forever just because.","history":["2026-05-10","2025-06-28","2025-05-25","2024-09-22","2024-07-27"]},
+    {"id":"3","title":"A Mighty Fortress","artist":"Christy Nockels","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"5488935","bibleRef":"","tags":["slow"],"history":["2025-06-15","2024-01-21"]},
+    {"id":"4","title":"Above All","artist":"Lenny LeBlanc, Michael W. Smith","keys":["F"],"bpm":62,"sig":"4/4","yt":"","ccli":"2672885","bibleRef":"","tags":["slow"],"history":["2025-02-09"]},
+    {"id":"5","title":"Again I Say Rejoice","artist":"Israel Houghton","keys":["E"],"bpm":128,"sig":"4/4","yt":"","ccli":"4302823","bibleRef":"","tags":["fast"]},
+    {"id":"6","title":"Agnus Dei","artist":"Michael W. Smith","keys":["D","G"],"bpm":66,"sig":"4/4","yt":"","ccli":"626713","bibleRef":"","tags":["slow"],"history":["2026-02-22","2025-06-28","2025-05-25","2024-09-22","2024-07-27"]},
+    {"id":"7","title":"Alive","artist":"Hillsong","keys":["E"],"bpm":132,"sig":"4/4","yt":"","ccli":"6605212","bibleRef":"","tags":["fast"]},
+    {"id":"8","title":"All About You","artist":"Israel Houghton","keys":["Eb","E"],"bpm":118,"sig":"4/4","yt":"","ccli":"3588284","bibleRef":"","tags":["fast"]},
+    {"id":"9","title":"All Because of Jesus","artist":"Steve Fee","keys":["Eb","G"],"bpm":140,"sig":"4/4","yt":"https://www.youtube.com/watch?v=kbmeG_nvTi4","ccli":"4882903","bibleRef":"","tags":["fast","opener"],"history":["2026-08-02","2026-06-28","2026-05-31","2025-12-28","2025-09-21","2025-06-15","2025-04-27","2024-10-20","2024-07-07"]},
+    {"id":"10","title":"All Creatures of Our God and King","artist":"David Crowder","keys":["C"],"bpm":69,"sig":"4/4","yt":"","ccli":"3608102","bibleRef":"","tags":["medium"],"history":["2025-05-11"]},
+    {"id":"11","title":"All Hail King Jesus","artist":"Bethel, Jeremy Riddle","keys":["E","F"],"bpm":74,"sig":"4/4","yt":"","ccli":"7097216","bibleRef":"","tags":["slow"],"history":["2026-01-11","2025-10-26","2025-04-20","2024-11-30","2024-07-21","2024-04-07","2024-03-31"]},
+    {"id":"12","title":"All I Need Is You","artist":"Hillsong, Marty Sampson","keys":["Ab","E"],"bpm":75,"sig":"4/4","yt":"","ccli":"4455213","bibleRef":"","tags":["slow"]},
+    {"id":"13","title":"All Things Are Possible","artist":"Hillsong (Darlene Zschech)","keys":["C"],"bpm":122,"sig":"4/4","yt":"","ccli":"2245140","bibleRef":"","tags":["fast","key change"]},
+    {"id":"14","title":"All Who Are Thirsty","artist":"Brenton Brown","keys":["Db"],"bpm":54,"sig":"6/8","yt":"","ccli":"2489542","bibleRef":"","tags":["slow"],"history":["2025-07-06"]},
+    {"id":"15","title":"Always","artist":"Passion, Kristian Stanfill","keys":["Db"],"bpm":70,"sig":"4/4","yt":"","ccli":"5881037","bibleRef":"","tags":["slow"]},
+    {"id":"16","title":"Amazed","artist":"Jared Anderson","keys":["D","Eb","G"],"bpm":74,"sig":"4/4","yt":"","ccli":"4221021","bibleRef":"","tags":["slow","response"],"history":["2026-05-17","2024-03-17"]},
+    {"id":"17","title":"Amazing Grace","artist":"Traditional","keys":["Bb"],"bpm":90,"sig":"3/4","yt":"","ccli":"22025","bibleRef":"","tags":["slow","hymn"],"history":["2025-04-27"]},
+    {"id":"18","title":"Amazing Grace (My Chains Are Gone)","artist":"Chris Tomlin","keys":["Bb","Db"],"bpm":60,"sig":"4/4","yt":"","ccli":"4768151","bibleRef":"","tags":["slow","response"],"history":["2025-11-02","2024-07-28"]},
+    {"id":"19","title":"Amen","artist":"Charity Gayle","keys":["D"],"bpm":53,"sig":"2/2","yt":"","ccli":"7081391","bibleRef":"","tags":["slow","response"],"history":["2025-05-11"]},
+    {"id":"20","title":"Ancient of Days","artist":"Gary Sadler","keys":["A"],"bpm":87,"sig":"4/4","yt":"","ccli":"7124328","bibleRef":"","tags":["fast","opener"],"history":["2026-03-22","2025-07-20","2024-06-09","2023-12-31"]},
+    {"id":"337","title":"Angels We Have Heard On High","artist":"Traditional","keys":["D"],"bpm":112,"sig":"4/4","yt":"","ccli":"7014589","bibleRef":"","tags":["fast","christmas"],"notes":"","history":["2025-12-14","2024-12-08","2023-12-17"]},
+    {"id":"21","title":"Arise","artist":"Don Moen (Paul Baloche)","keys":["C"],"bpm":117,"sig":"4/4","yt":"","ccli":"4032337","bibleRef":"","tags":["fast","key change"]},
+    {"id":"22","title":"As The Deer","artist":"Martin Nystrom","keys":["A"],"bpm":74,"sig":"4/4","yt":"","ccli":"1431","bibleRef":"","tags":["slow"],"history":["2024-01-07"]},
+    {"id":"23","title":"At The Foot of the Cross","artist":"Kathryn Scott","keys":["Eb"],"bpm":70,"sig":"4/4","yt":"","ccli":"4157353","bibleRef":"","tags":["slow"]},
+    {"id":"24","title":"At Your Feet","artist":"Darren Cooper","keys":["D"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=_sANixWgMdc","ccli":"4871464","bibleRef":"","tags":["slow"]},
+    {"id":"25","title":"Awake My Soul","artist":"Hillsong, Brooke Ligertwood","keys":["F"],"bpm":127,"sig":"4/4","yt":"","ccli":"7134998","bibleRef":"","tags":["fast","opener"],"history":["2026-01-25","2024-03-10"]},
+    {"id":"26","title":"Awakening","artist":"Chris Tomlin","keys":["Ab"],"bpm":82,"sig":"4/4","yt":"","ccli":"5677399","bibleRef":"","tags":["slow"]},
+    {"id":"27","title":"Away In A Manger","artist":"Traditional","keys":["F"],"bpm":100,"sig":"3/4","yt":"","ccli":"38583","bibleRef":"","tags":["slow","hymn","christmas"]},
+    {"id":"28","title":"Awesome God","artist":"Rich Mullins","keys":["Cm"],"bpm":72,"sig":"2/2","yt":"","ccli":"41099","bibleRef":"","tags":["fast"],"history":["2024-09-29"]},
+    {"id":"29","title":"Battle Belongs","artist":"Phil Wickham","keys":["Db"],"bpm":81,"sig":"4/4","yt":"https://www.youtube.com/watch?v=qtvQNzPHn-w","ccli":"7148126","bibleRef":"","tags":["fast","opener"],"history":["2026-07-12","2024-12-29","2024-10-06","2024-05-19","2024-02-11","2024-01-07"]},
+    {"id":"30","title":"Be Glorified","artist":"Billy Funk","keys":["Eb"],"bpm":76,"sig":"4/4","yt":"","ccli":"429226","bibleRef":"","tags":["slow"]},
+    {"id":"31","title":"Be Thou My Vision","artist":"Traditional","keys":["D","Db"],"bpm":90,"sig":"3/4","yt":"","ccli":"7056332","bibleRef":"","tags":["slow","hymn"],"history":["2026-01-04","2024-07-07"]},
+    {"id":"32","title":"Beautiful","artist":"Phil Wickham","keys":["A"],"bpm":83,"sig":"4/4","yt":"","ccli":"5124024","bibleRef":"","tags":["slow"],"history":["2026-04-26","2025-10-12","2025-03-08","2024-10-20","2024-07-07","2024-04-14"]},
+    {"id":"33","title":"Beautiful One","artist":"Tim Hughes","keys":["Bb"],"bpm":122,"sig":"4/4","yt":"","ccli":"3915912","bibleRef":"","tags":["fast"]},
+    {"id":"34","title":"Because He Lives (Amen)","artist":"Chris Tomlin (Matt Maher)","keys":["Eb"],"bpm":84,"sig":"4/4","yt":"","ccli":"7027887","bibleRef":"","tags":["medium"],"history":["2026-03-01","2024-03-17"]},
+    {"id":"35","title":"Before You","artist":"Randy Butler","keys":["Bb"],"bpm":76,"sig":"4/4","yt":"","ccli":"2678164","bibleRef":"","tags":["slow"]},
+    {"id":"36","title":"Behold He Comes","artist":"Zachery Dusing","keys":["C"],"bpm":100,"sig":"4/4","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["fast","opener","original","christmas","key change"],"history":["2024-12-15"]},
+    {"id":"37","title":"Better Is One Day","artist":"Matt Redman","keys":["B","Eb"],"bpm":77,"sig":"4/4","yt":"","ccli":"1097451","bibleRef":"","tags":["medium"]},
+    {"id":"38","title":"Blessed Assurance","artist":"Traditional","keys":["Bb"],"bpm":66,"sig":"9/8","yt":"","ccli":"22324","bibleRef":"","tags":["slow","hymn"]},
+    {"id":"39","title":"Blessed Be Your Name","artist":"Matt Redman","keys":["A"],"bpm":116,"sig":"4/4","yt":"","ccli":"3798438","bibleRef":"","tags":["medium"],"history":["2026-04-26","2025-03-30","2024-10-27","2024-06-09","2024-01-28","2024-01-21"]},
+    {"id":"40","title":"Break Every Chain","artist":"Will Reagan, Jesus Culture","keys":["A","C"],"bpm":67,"sig":"4/4","yt":"","ccli":"5910977","bibleRef":"","tags":["slow"],"history":["2024-12-29","2024-03-24"]},
+    {"id":"41","title":"Breathe","artist":"Marie Barnett, Michael W. Smith","keys":["Eb"],"bpm":58,"sig":"4/4","yt":"","ccli":"1887381","bibleRef":"","tags":["slow","response"],"history":["2026-02-08","2025-09-07","2025-07-27"]},
+    {"id":"42","title":"Broken Vessels (Amazing Grace)","artist":"Hillsong (Joel Houston)","keys":["G"],"bpm":70,"sig":"4/4","yt":"","ccli":"7019974","bibleRef":"","tags":["slow"]},
+    {"id":"43","title":"Build My Life","artist":"Housefires (Pat Barret)","keys":["C","D"],"bpm":70,"sig":"4/4","yt":"","ccli":"7070345","bibleRef":"","tags":["slow","response"],"history":["2025-12-28","2025-12-14","2025-08-17","2025-06-08","2024-08-18","2024-08-04"]},
+    {"id":"44","title":"Came To My Rescue","artist":"Hillsong, Dylan Thomas","keys":["D"],"bpm":83,"sig":"4/4","yt":"","ccli":"4705190","bibleRef":"","tags":["slow","response"],"history":["2025-08-31","2024-09-01","2024-05-19"]},
+    {"id":"45","title":"Can't Stop Praising His Name (Call Him Up)","artist":"Herman Netter, Ron Kenoly","keys":["Eb"],"bpm":140,"sig":"4/4","yt":"","ccli":"450408","bibleRef":"","tags":["fast"]},
+    {"id":"46","title":"Cannons","artist":"Phil Wickham","keys":["A"],"bpm":78,"sig":"4/4","yt":"","ccli":"5124055","bibleRef":"","tags":["fast"],"history":["2026-03-28","2026-03-15","2025-03-02","2024-06-16","2023-12-31"]},
+    {"id":"47","title":"Center","artist":"Charlie Hall","keys":["E"],"bpm":112,"sig":"4/4","yt":"","ccli":"4665261","bibleRef":"","tags":["medium"],"history":["2024-11-10","2024-03-17","2024-02-04"]},
+    {"id":"350","title":"Center (Gamboa)","artist":"Abbie Gamboa, Bethel","keys":["A"],"bpm":66,"sig":"4/4","yt":"","ccli":"7247456","bibleRef":"","tags":["slow"],"notes":"Introducing at the September 12 worship night.","history":["2026-09-12"]},
+    {"id":"48","title":"Christ Is Risen","artist":"Matt Maher","keys":["Db"],"bpm":81,"sig":"4/4","yt":"","ccli":"5242683","bibleRef":"","tags":["medium"]},
+    {"id":"49","title":"Closer","artist":"Bethel, Steffany Gretzinger","keys":["E"],"bpm":70,"sig":"4/4","yt":"","ccli":"6227047","bibleRef":"","tags":["slow"]},
+    {"id":"50","title":"Come Alive","artist":"Lauren Daigle","keys":["C"],"bpm":70,"sig":"4/4","yt":"","ccli":"7019315","bibleRef":"","tags":["slow"]},
+    {"id":"51","title":"Come And Let Your Presence","artist":"Merchant Band (Tim Reimherr)","keys":["C"],"bpm":81,"sig":"4/4","yt":"","ccli":"12404","bibleRef":"","tags":["slow"]},
+    {"id":"52","title":"Come Away","artist":"Jesus Culture, Brock Human","keys":["C"],"bpm":82,"sig":"4/4","yt":"","ccli":"5874202","bibleRef":"","tags":["slow"],"history":["2026-03-28","2024-04-21"]},
+    {"id":"338","title":"Come Lord Jesus","artist":["Dominique Hughes","Jeremy Riddle"],"keys":["C"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=df1ORk3DKrg","ccli":"7199923","bibleRef":"","tags":["slow"],"notes":"","history":["2026-07-26","2026-05-03","2026-01-18","2025-09-14","2025-08-10","2025-06-28"]},
+    {"id":"53","title":"Come Now Is The Time To Worship","artist":"Brian Doerksen","keys":["C"],"bpm":98,"sig":"4/4","yt":"","ccli":"2430948","bibleRef":"","tags":["medium"],"history":["2025-07-20","2024-06-30","2024-02-04"]},
+    {"id":"54","title":"Come Thou Fount","artist":"Traditional","keys":["Bb"],"bpm":80,"sig":"4/4","yt":"","ccli":"108389","bibleRef":"","tags":["slow","hymn"],"history":["2026-02-15","2025-08-03"]},
+    {"id":"55","title":"Cornerstone","artist":"Hillsong, Edward Mote","keys":["C"],"bpm":71,"sig":"4/4","yt":"","ccli":"6158927","bibleRef":"","tags":["medium"],"history":["2026-06-21","2026-04-12","2025-04-06","2024-12-29","2024-07-28","2024-02-04"]},
+    {"id":"56","title":"Cover The Earth","artist":"Israel Houghton","keys":["Db"],"bpm":128,"sig":"4/4","yt":"","ccli":"4194299","bibleRef":"","tags":["fast"]},
+    {"id":"57","title":"Covered","artist":"Israel Houghton","keys":["Bb"],"bpm":170,"sig":"6/8","yt":"","ccli":"7016169","bibleRef":"","tags":["slow","response"],"history":["2026-01-25","2024-09-29","2023-11-26"]},
+    {"id":"58","title":"Crowns Down","artist":"Gateway Worship, Josh Baldwin","keys":["Bb"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=pogDXVoLGLU","ccli":"7222828","bibleRef":"","tags":["slow","response"],"history":["2026-08-16","2026-04-26","2026-02-08","2025-09-21","2025-01-19","2024-07-27","2024-07-14","2024-06-02","2024-05-26"]},
+    {"id":"59","title":"Days of Elijah","artist":"Robin Mark","keys":["G"],"bpm":110,"sig":"4/4","yt":"","ccli":"1537904","bibleRef":"","tags":["fast","opener"],"history":["2024-11-03"]},
+    {"id":"60","title":"Death Was Arrested","artist":"North Point Worship","keys":["B"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=uMsMiluCUUI","ccli":"7046448","bibleRef":"","tags":["medium"],"history":["2026-05-24","2026-04-05","2026-03-22","2025-11-30","2025-11-09","2025-07-13","2025-04-27","2025-04-20"]},
+    {"id":"61","title":"Desert Song","artist":"Hillsong","keys":["D"],"bpm":110,"sig":"4/4","yt":"","ccli":"5060793","bibleRef":"","tags":["fast","opener"],"history":["2026-03-01","2025-06-22","2025-01-19","2024-10-13","2024-01-28"]},
+    {"id":"62","title":"Did You Feel the Mountains Tremble","artist":"Delirious?","keys":["Eb"],"bpm":102,"sig":"4/4","yt":"","ccli":"1866179","bibleRef":"","tags":["fast","opener"],"history":["2026-04-19","2025-04-13","2024-06-23","2024-04-14"]},
+    {"id":"63","title":"Doxology (God Be Praised)","artist":"The Belonging Co","keys":["E"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=xLPZAkUTle4","ccli":"7145749","bibleRef":"","tags":["slow"],"history":["2026-07-05","2025-11-16","2025-03-02","2024-12-15","2024-06-23","2024-04-21","2024-01-21"]},
+    {"id":"64","title":"Draw Me Close","artist":"Kelly Carpenter","keys":["Eb","G"],"bpm":69,"sig":"4/4","yt":"","ccli":"1459484","bibleRef":"","tags":["slow","response"],"history":["2026-04-12","2025-09-14"]},
+    {"id":"65","title":"Drawn To You","artist":"Gateway Worship","keys":["D","G"],"bpm":66,"sig":"4/4","yt":"","ccli":"4870081","bibleRef":"","tags":["slow"]},
+    {"id":"66","title":"Echo Holy","artist":"Red Rocks Worship","keys":["D"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=0cmEdQ3gfy4","ccli":"7134317","bibleRef":"","tags":["slow","response"],"history":["2026-08-02","2026-06-28","2025-12-28","2025-11-30"]},
+    {"id":"339","title":"Enough","artist":["Chris Tomlin","Louie Giglio"],"keys":["A"],"bpm":77,"sig":"4/4","yt":"","ccli":"3599479","bibleRef":"","tags":["slow"],"notes":"","history":["2026-03-29","2026-03-28"]},
+    {"id":"67","title":"Enter The Gates","artist":"Bryan & Katie Torwalt","keys":["D","Db"],"bpm":105,"sig":"4/4","yt":"","ccli":"7016301","bibleRef":"","tags":["fast","opener"],"history":["2026-02-22","2025-09-07","2025-07-06","2025-05-18","2025-03-30","2024-08-11","2024-07-21","2024-04-21"]},
+    {"id":"341","title":"Even If","artist":["Bart Millard","MercyMe"],"keys":["F#"],"bpm":55,"sig":"6/8","yt":"","ccli":"7079513","bibleRef":"","tags":["slow"],"notes":"Chorus and Bridge only, paired with Reckless Love.","history":["2026-03-29","2026-03-28"]},
+    {"id":"68","title":"Even So Come","artist":"Passion","keys":["C"],"bpm":80,"sig":"4/4","yt":"","ccli":"7036288","bibleRef":"","tags":["medium"],"history":["2025-09-21","2025-04-06"]},
+    {"id":"69","title":"Ever Be","artist":"Bethel","keys":["D"],"bpm":72,"sig":"4/4","yt":"","ccli":"7030065","bibleRef":"","tags":["slow","response"],"history":["2026-03-22","2024-11-03","2024-08-04","2024-07-21"]},
+    {"id":"70","title":"Everlasting God","artist":"Brenton Brown","keys":["G"],"bpm":105,"sig":"4/4","yt":"https://www.youtube.com/watch?v=Rk54OqoVMoY","ccli":"4556538","bibleRef":"","tags":["fast","opener"],"history":["2026-08-09","2025-08-17","2025-06-28","2024-08-18"]},
+    {"id":"348","title":"Everlasting God (Packiam)","artist":"Glenn Packiam","keys":["F"],"bpm":74,"sig":"4/4","yt":"https://www.youtube.com/watch?v=Kx9cjpZE1bA","ccli":"4882769","bibleRef":"","tags":["slow","response"],"notes":"","history":["2026-04-19"]},
+    {"id":"71","title":"Every Praise Is To Our God","artist":"Hezekiah Walker","keys":["Db"],"bpm":102,"sig":"4/4","yt":"","ccli":"6623483","bibleRef":"","tags":["fast","key change"]},
+    {"id":"72","title":"Everything That Has Breath","artist":"Matt Redman","keys":["Ab"],"bpm":124,"sig":"4/4","yt":"","ccli":"4113220","bibleRef":"","tags":["fast"]},
+    {"id":"73","title":"Exalt The Lord","artist":"Cindy Rethmeier","keys":["G"],"bpm":68,"sig":"4/4","yt":"","ccli":"768066","bibleRef":"","tags":["slow"],"history":["2024-09-22","2024-07-27"]},
+    {"id":"74","title":"Exalted One","artist":"Elevation Worship","keys":["Db"],"bpm":122,"sig":"4/4","yt":"","ccli":"5881020","bibleRef":"","tags":["fast"]},
+    {"id":"75","title":"Fall Into You","artist":"Elevation Worship","keys":["Ab"],"bpm":72,"sig":"4/4","yt":"","ccli":"7100411","bibleRef":"","tags":["slow"]},
+    {"id":"76","title":"Famous One","artist":"Chris Tomlin","keys":["Bb"],"bpm":110,"sig":"4/4","yt":"","ccli":"3599431","bibleRef":"","tags":["fast","opener"],"history":["2024-01-14"]},
+    {"id":"77","title":"Father of Lights","artist":"Jeremy Riddle","keys":["D"],"bpm":108,"sig":"4/4","yt":"","ccli":"5161619","bibleRef":"","tags":["fast"]},
+    {"id":"78","title":"Father You Are All We Need","artist":"Citizens","keys":["G"],"bpm":68,"sig":"4/4","yt":"","ccli":"7014441","bibleRef":"","tags":["slow"]},
+    {"id":"79","title":"For All You've Done","artist":"Hillsong","keys":["Eb"],"bpm":122,"sig":"4/4","yt":"","ccli":"4221021","bibleRef":"","tags":["fast","opener"],"history":["2024-06-30"]},
+    {"id":"80","title":"For Souls For Nations","artist":"Zachery Dusing","keys":["G"],"bpm":64,"sig":"4/4","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["slow","original"],"history":["2025-08-17","2025-05-18","2024-09-22","2024-08-18"]},
+    {"id":"81","title":"Forever","artist":"Chris Tomlin","keys":["Ab","B","F"],"bpm":120,"sig":"4/4","yt":"","ccli":"3148428","bibleRef":"","tags":["medium","opener"],"history":["2026-04-05","2025-08-24","2025-04-20","2024-09-08","2024-08-25"]},
+    {"id":"82","title":"Forever Reign","artist":"Hillsong","keys":["D"],"bpm":83,"sig":"4/4","yt":"","ccli":"5639997","bibleRef":"","tags":["medium"],"history":["2024-11-03","2024-05-05","2024-01-14"]},
+    {"id":"83","title":"Freedom","artist":"Jesus Culture","keys":["G"],"bpm":124,"sig":"4/4","yt":"","ccli":"7078151","bibleRef":"2 Corinthians 3:17","tags":["fast","opener"],"history":["2025-11-16","2025-07-06","2025-01-26","2024-06-09"]},
+    {"id":"84","title":"Freedom Reigns","artist":"Jason Upton","keys":["D","E"],"bpm":65,"sig":"4/4","yt":"","ccli":"2430948","bibleRef":"","tags":["slow"],"history":["2024-03-03","2024-01-14"]},
+    {"id":"85","title":"Friend of God","artist":"Israel Houghton","keys":["C"],"bpm":128,"sig":"4/4","yt":"","ccli":"3991651","bibleRef":"","tags":["fast"]},
+    {"id":"86","title":"From The Day","artist":"I Am They","keys":["D"],"bpm":116,"sig":"4/4","yt":"","ccli":"7010476","bibleRef":"","tags":["fast"]},
+    {"id":"87","title":"From The Inside Out","artist":"Hillsong","keys":["G"],"bpm":71,"sig":"4/4","yt":"","ccli":"4705176","bibleRef":"","tags":["slow","response"],"history":["2024-10-27"]},
+    {"id":"88","title":"Give Me Faith","artist":"Elevation Worship","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"5683084","bibleRef":"","tags":["slow"]},
+    {"id":"89","title":"Give Thanks","artist":"Don Moen","keys":["C"],"bpm":66,"sig":"4/4","yt":"","ccli":"20285","bibleRef":"","tags":["slow"]},
+    {"id":"90","title":"Give Thanks (Hodu)","artist":"Gateway Worship","keys":["B"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=1RttQW7X3Q0","ccli":"5113912","bibleRef":"","tags":["slow","response"],"history":["2026-08-16","2025-11-16"]},
+    {"id":"91","title":"Give Us Clean Hands","artist":"Chris Tomlin","keys":["F#"],"bpm":72,"sig":"4/4","yt":"","ccli":"2818472","bibleRef":"","tags":["slow","response"],"history":["2025-04-27","2025-01-12","2024-07-21"]},
+    {"id":"92","title":"Give You All My Praise","artist":"Maggie Pruitt","keys":["E"],"bpm":66,"sig":"4/4","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["slow","original"],"history":["2026-01-25","2025-01-26"]},
+    {"id":"94","title":"Glorious (Kauflin)","artist":"Bob Kauflin, Sovereign Grace","keys":["D"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=0Mg9T_5F5yk","ccli":"5161860","bibleRef":"","tags":["slow"],"history":["2026-07-05","2026-04-12","2026-03-28","2025-11-30","2025-05-04","2025-01-12","2024-11-17","2024-10-13"]},
+    {"id":"93","title":"Glorious (Torwalt)","artist":"Passion","keys":["E"],"bpm":74,"sig":"4/4","yt":"https://www.youtube.com/watch?v=CkwE7SGZNV4","ccli":"7004839","bibleRef":"","tags":["medium"],"history":["2026-08-30","2026-03-15","2026-01-04","2025-11-09","2025-07-13","2025-05-04","2025-01-12","2024-11-30","2024-11-17","2024-10-13","2024-10-06","2024-09-15","2024-05-26"]},
+    {"id":"95","title":"Glorious Day","artist":"Passion","keys":["A"],"bpm":110,"sig":"4/4","yt":"https://www.youtube.com/watch?v=IVTqvlh184Y","ccli":"7081388","bibleRef":"","tags":["fast","opener"],"history":["2026-07-19","2026-03-08","2026-01-04","2025-04-20","2025-02-16","2025-01-05","2024-08-04","2024-03-03"]},
+    {"id":"96","title":"God Is Great","artist":"Hillsong","keys":["Eb"],"bpm":125,"sig":"4/4","yt":"","ccli":"4556552","bibleRef":"","tags":["fast"]},
+    {"id":"97","title":"God Of Wonders","artist":"Caedmon's Call","keys":["D"],"bpm":80,"sig":"4/4","yt":"","ccli":"3118757","bibleRef":"","tags":["slow","key change"]},
+    {"id":"344","title":"God You're So Good","artist":["Passion","Brooke Ligertwood","Kristian Stanfill"],"keys":["C"],"bpm":70,"sig":"4/4","yt":"","ccli":"7105729","bibleRef":"","tags":["slow"],"notes":"","history":["2026-07-12","2026-06-21","2026-06-20"]},
+    {"id":"98","title":"Good Good Father","artist":"Chris Tomlin","keys":["Bb","C"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=4v1IoMudbpQ","ccli":"7036612","bibleRef":"","tags":["slow","response"],"history":["2026-08-30","2026-05-03","2025-08-31","2025-03-30","2025-03-02","2025-02-16","2025-01-05","2024-09-01","2024-06-16","2024-03-24","2023-12-03"]},
+    {"id":"99","title":"Goodness Of God","artist":"Bethel","keys":["Ab"],"bpm":63,"sig":"4/4","yt":"","ccli":"7117726","bibleRef":"","tags":["slow","response"],"history":["2026-03-01","2025-10-26","2025-06-28","2025-03-16","2024-09-15","2024-06-23"]},
+    {"id":"100","title":"Grace Like Rain","artist":"Todd Agnew","keys":["Dm"],"bpm":72,"sig":"4/4","yt":"","ccli":"3689877","bibleRef":"","tags":["slow"]},
+    {"id":"101","title":"Gratitude","artist":"Bethel, Brandon Lake","keys":["F"],"bpm":52,"sig":"6/8","yt":"https://www.youtube.com/watch?v=N3sesjR0IY4","ccli":"7158417","bibleRef":"","tags":["slow"],"history":["2026-07-12","2026-03-08","2025-11-02","2025-09-28","2025-07-13","2024-09-15"]},
+    {"id":"102","title":"Graves Into Gardens","artist":"Elevation Worship, Brandon Lake","keys":["B"],"bpm":46,"sig":"6/8","yt":"https://www.youtube.com/watch?v=KwX1f2gYKZ4","ccli":"7138219","bibleRef":"","tags":["medium"],"history":["2026-07-19","2026-02-08","2025-09-28","2025-05-04","2024-09-08"]},
+    {"id":"103","title":"Great Are You Lord","artist":"All Sons & Daughters","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"6454302","bibleRef":"","tags":["slow"],"history":["2025-05-04","2024-05-19"]},
+    {"id":"104","title":"Great I Am","artist":"New Life Worship, Jared Anderson","keys":["D"],"bpm":80,"sig":"4/4","yt":"","ccli":"5881491","bibleRef":"","tags":["slow"],"history":["2024-03-24"]},
+    {"id":"105","title":"Great Is Thy Faithfulness","artist":"Traditional","keys":["Bb"],"bpm":60,"sig":"4/4","yt":"","ccli":"18723","bibleRef":"","tags":["slow","hymn","response"],"history":["2025-08-18","2025-05-04","2024-08-11"]},
+    {"id":"106","title":"Great Things","artist":"Phil Wickham","keys":["C"],"bpm":102,"sig":"4/4","yt":"https://www.youtube.com/watch?v=kpAFlLU1WTE","ccli":"7111321","bibleRef":"","tags":["fast","opener"],"history":["2026-06-21","2026-05-24","2025-10-19","2025-09-28","2025-08-17","2025-05-25","2025-03-23","2025-03-09","2024-08-18","2024-03-30"]},
+    {"id":"107","title":"Hallelujah Chorus","artist":"Handel","keys":["A"],"bpm":100,"sig":"4/4","yt":"","ccli":"Traditional","bibleRef":"","tags":["slow"]},
+    {"id":"108","title":"Hallelujah You Are Here","artist":"Zachery Dusing","keys":["E"],"bpm":64,"sig":"4/4","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["slow","original"]},
+    {"id":"109","title":"Happy Day","artist":"Tim Hughes","keys":["Db"],"bpm":115,"sig":"4/4","yt":"","ccli":"4847027","bibleRef":"","tags":["fast"]},
+    {"id":"110","title":"Hark The Herald Angels Sing","artist":"Traditional","keys":["D","Db"],"bpm":110,"sig":"4/4","yt":"","ccli":"27738","bibleRef":"","tags":["medium","hymn","christmas"],"history":["2024-12-15","2023-12-17"]},
+    {"id":"111","title":"He Is Exalted","artist":"Twila Paris","keys":["Db","Eb"],"bpm":92,"sig":"4/4","yt":"","ccli":"17827","bibleRef":"","tags":["medium"],"history":["2026-03-01","2024-04-07"]},
+    {"id":"112","title":"He Shall Reign Forevermore","artist":"Chris Tomlin","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"7050416","bibleRef":"","tags":["slow"],"history":["2025-12-07","2024-12-01","2023-12-24"]},
+    {"id":"113","title":"Healer","artist":"Kari Jobe","keys":["Eb"],"bpm":66,"sig":"4/4","yt":"","ccli":"5053151","bibleRef":"","tags":["slow"]},
+    {"id":"114","title":"Hear Our Praises","artist":"Hillsong","keys":["Bb"],"bpm":120,"sig":"4/4","yt":"","ccli":"2543402","bibleRef":"","tags":["fast"],"history":["2025-08-03"]},
+    {"id":"115","title":"Hear Us From Heaven","artist":"Jared Anderson","keys":["G"],"bpm":72,"sig":"4/4","yt":"","ccli":"4455392","bibleRef":"","tags":["slow"]},
+    {"id":"116","title":"Heart Of Worship","artist":"Matt Redman","keys":["Bb"],"bpm":72,"sig":"4/4","yt":"","ccli":"2296522","bibleRef":"","tags":["slow"]},
+    {"id":"117","title":"Heaven's Song","artist":"Walker Beach","keys":["Db"],"bpm":68,"sig":"4/4","yt":"","ccli":"5074363","bibleRef":"","tags":["slow"]},
+    {"id":"118","title":"Here Again","artist":"Elevation Worship","keys":["D","E"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=aIdZ5KRiakM","ccli":"7111925","bibleRef":"","tags":["slow","response"],"history":["2026-07-26","2024-08-18","2024-01-21"]},
+    {"id":"119","title":"Here As In Heaven","artist":"Elevation Worship","keys":["G"],"bpm":70,"sig":"4/4","yt":"","ccli":"7051506","bibleRef":"","tags":["slow"],"history":["2026-05-17"]},
+    {"id":"120","title":"Here For You","artist":"Matt Redman","keys":["Eb"],"bpm":72,"sig":"4/4","yt":"","ccli":"5925663","bibleRef":"","tags":["medium"]},
+    {"id":"121","title":"Here I Am To Worship","artist":"Tim Hughes","keys":["C","Db","F"],"bpm":72,"sig":"4/4","yt":"","ccli":"3266032","bibleRef":"","tags":["slow","response"],"history":["2025-06-01","2024-10-20","2024-06-30"]},
+    {"id":"122","title":"Here In Your Presence","artist":"Jon Egan","keys":["A"],"bpm":74,"sig":"4/4","yt":"","ccli":"4806450","bibleRef":"","tags":["slow"],"history":["2025-03-23","2024-11-10"]},
+    {"id":"123","title":"Holy Forever","artist":"Chris Tomlin","keys":["F#"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=-g5hAoj0ApE","ccli":"7201044","bibleRef":"","tags":["slow"],"history":["2026-06-14","2025-12-21","2025-12-14","2025-10-05","2025-05-18","2025-03-02","2024-11-30"]},
+    {"id":"124","title":"Holy Forever (Christmas)","artist":"Chris Tomlin","keys":["F#"],"bpm":72,"sig":"4/4","bibleRef":"","tags":["slow","christmas"],"yt":"","ccli":"7249209","notes":""},
+    {"id":"125","title":"Holy Holy Holy","artist":"Traditional","keys":["Db"],"bpm":120,"sig":"4/4","yt":"","ccli":"2102","bibleRef":"","tags":["fast","hymn"],"history":["2025-11-09","2025-03-02","2024-06-16","2024-06-09"]},
+    {"id":"126","title":"Holy Holy Holy (Hymn)","artist":"Traditional","keys":["C"],"bpm":60,"sig":"4/4","yt":"","ccli":"1156","bibleRef":"","tags":["slow","hymn"]},
+    {"id":"127","title":"Holy Holy Holy (Lord God Almighty)","artist":"Traditional","keys":["C"],"bpm":64,"sig":"4/4","yt":"","ccli":"2102","bibleRef":"","tags":["slow","hymn"]},
+    {"id":"128","title":"Holy Holy Holy (Savior King)","artist":"Hillsong","keys":["C"],"bpm":68,"sig":"4/4","yt":"","ccli":"4879202","bibleRef":"","tags":["slow","response"]},
+    {"id":"129","title":"Holy Is The Lord","artist":"Chris Tomlin","keys":["D"],"bpm":74,"sig":"4/4","yt":"","ccli":"4157251","bibleRef":"","tags":["slow"],"history":["2025-10-12"]},
+    {"id":"130","title":"Holy Is The Lord","artist":"Jeff Searles","keys":["A"],"bpm":120,"sig":"4/4","yt":"","ccli":"4034425","bibleRef":"","tags":["fast","opener"]},
+    {"id":"131","title":"Holy Is Your Name / Lord You're Holy","artist":"Brooklyn Tabernacle","keys":["Em"],"bpm":68,"sig":"4/4","yt":"","ccli":"1459484","bibleRef":"","tags":["slow"]},
+    {"id":"132","title":"Holy Spirit","artist":"Bryan & Katie Torwalt","keys":["C","D","Db"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=qNwnOfZ5N8A","ccli":"6087919","bibleRef":"","tags":["slow"],"history":["2026-05-24","2025-06-08","2024-02-18"]},
+    {"id":"133","title":"Holy Water","artist":"We The Kingdom","keys":["D"],"bpm":74,"sig":"4/4","yt":"","ccli":"7136448","bibleRef":"","tags":["fast"],"history":["2025-10-19","2025-08-03","2025-01-05","2024-05-26","2024-03-30"]},
+    {"id":"134","title":"Hosanna","artist":"Hillsong","keys":["D"],"bpm":76,"sig":"4/4","yt":"","ccli":"4785835","bibleRef":"","tags":["slow"],"history":["2026-04-26","2026-01-25","2025-04-13","2025-04-06"]},
+    {"id":"135","title":"Hosanna (Praise Is Rising)","artist":"Paul Baloche","keys":["Eb"],"bpm":118,"sig":"4/4","yt":"https://www.youtube.com/watch?v=0flzm_oISng","ccli":"4662491","bibleRef":"","tags":["fast","opener"],"history":["2026-08-23","2026-08-02","2026-03-29","2025-04-13","2024-10-20","2024-07-27","2024-07-14","2024-06-23","2024-05-05"]},
+    {"id":"136","title":"House of the Lord","artist":"Phil Wickham","keys":["B","Bb"],"bpm":86,"sig":"4/4","yt":"https://www.youtube.com/watch?v=h8uKldEUrPE","ccli":"7168991","bibleRef":"","tags":["fast","opener"],"history":["2026-06-07","2026-03-29","2026-01-18","2025-08-31","2025-05-11","2025-01-19","2024-09-01","2024-08-11","2024-06-02","2024-05-12","2023-12-31"]},
+    {"id":"137","title":"How Deep The Father's Love","artist":"Stuart Townend","keys":["Eb"],"bpm":66,"sig":"4/4","yt":"https://www.youtube.com/watch?v=z65YxhqY0_E","ccli":"1558110","bibleRef":"","tags":["slow"],"history":["2026-06-07","2024-12-29","2024-05-12","2024-01-14"]},
+    {"id":"138","title":"How Great Is Our God","artist":"Chris Tomlin","keys":["Ab","C","D","Eb","E"],"bpm":76,"sig":"4/4","yt":"https://www.youtube.com/watch?v=DLXX7O-KpiE","ccli":"4348399","bibleRef":"","tags":["slow","response"],"history":["2026-08-09","2026-02-22","2025-09-21","2025-06-28","2024-09-15","2024-02-04"]},
+    {"id":"139","title":"How Great Thou Art","artist":"Traditional","keys":["Ab"],"bpm":60,"sig":"4/4","yt":"","ccli":"14181","bibleRef":"","tags":["slow","hymn","response"],"history":["2025-11-16","2025-07-27"]},
+    {"id":"140","title":"How He Loves","artist":"John Mark McMillan","keys":["C"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=_HGRyxAfhZU","ccli":"5032549","bibleRef":"","tags":["slow","response"],"history":["2026-06-07","2025-10-26","2025-03-23","2024-02-18"]},
+    {"id":"141","title":"Hungry","artist":"Kathryn Scott","keys":["A","Bb"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=L-9ALZrds-o","ccli":"2650364","bibleRef":"","tags":["slow"],"history":["2026-08-02","2026-03-08","2025-07-06"]},
+    {"id":"142","title":"Hymn Of Heaven","artist":"Phil Wickham","keys":["F#"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=i6J5Ia9J0Qo","ccli":"7177789","bibleRef":"","tags":["slow","response"],"history":["2026-08-02","2025-05-18","2025-03-02","2024-11-30","2024-11-17","2024-08-18","2024-03-31","2024-03-03"],"notes":"May be sung with the \"holy holy holy\" interlude to transition into the chorus of Holy Forever or to end the song instead."},
+    {"id":"143","title":"I Am","artist":"Crowder","keys":["Db"],"bpm":108,"sig":"4/4","yt":"","ccli":"7008315","bibleRef":"","tags":["fast"]},
+    {"id":"144","title":"I Am Free","artist":"Newsboys","keys":["D"],"bpm":122,"sig":"4/4","yt":"","ccli":"4447960","bibleRef":"","tags":["fast"]},
+    {"id":"145","title":"I Am Not Alone","artist":"Kari Jobe","keys":["B","Bb","E"],"bpm":68,"sig":"4/4","yt":"","ccli":"7008305","bibleRef":"","tags":["slow"],"history":["2026-03-22"]},
+    {"id":"146","title":"I Could Sing of Your Love Forever","artist":"Delirious?","keys":["Bb","Db"],"bpm":72,"sig":"4/4","yt":"","ccli":"1043199","bibleRef":"","tags":["slow","response"],"history":["2024-10-20","2024-07-07"]},
+    {"id":"147","title":"I Exalt Thee","artist":"Pete Sanchez Jr.","keys":["C"],"bpm":66,"sig":"4/4","yt":"","ccli":"17803","bibleRef":"","tags":["slow","response"],"history":["2025-06-28","2025-01-05"]},
+    {"id":"148","title":"I Give Myself Away","artist":"William McDowell","keys":["C"],"bpm":64,"sig":"4/4","yt":"","ccli":"5873331","bibleRef":"","tags":["slow"]},
+    {"id":"149","title":"I Give You My Heart","artist":"Hillsong","keys":["B","Eb"],"bpm":72,"sig":"4/4","yt":"","ccli":"1866148","bibleRef":"","tags":["slow"],"history":["2026-03-28","2026-03-15"]},
+    {"id":"150","title":"I Got Saved","artist":"Selah","keys":["F#"],"bpm":78,"sig":"4/4","yt":"","ccli":"7062479","bibleRef":"","tags":["fast"]},
+    {"id":"343","title":"I Know A Name","artist":"Brandon Lake, Elevation Worship","keys":["C"],"bpm":58,"sig":"6/8","yt":"https://www.youtube.com/watch?v=2wJKiOEdUsk","ccli":"7247990","bibleRef":"","tags":["medium"],"notes":"","history":["2026-06-14","2026-04-05","2026-03-21","2026-03-15"]},
+    {"id":"151","title":"I Know Who I Am","artist":"Israel Houghton","keys":["A","B"],"bpm":126,"sig":"4/4","yt":"https://www.youtube.com/watch?v=HTwu0JaREHg","ccli":"4447915","bibleRef":"","tags":["fast","opener"],"history":["2026-08-16","2025-08-10","2024-08-18","2024-06-16"]},
+    {"id":"152","title":"I Love You Lord","artist":"Laurie Klein","keys":["D","E"],"bpm":64,"sig":"4/4","yt":"","ccli":"25266","bibleRef":"","tags":["slow"]},
+    {"id":"153","title":"I Love Your Presence","artist":"Jeremy Riddle","keys":["Bb"],"bpm":68,"sig":"4/4","yt":"","ccli":"5161619","bibleRef":"","tags":["slow","response"],"history":["2025-06-08","2025-02-09"]},
+    {"id":"154","title":"I Need You More","artist":"Lindell Cooley","keys":["E"],"bpm":66,"sig":"4/4","yt":"","ccli":"3011317","bibleRef":"","tags":["slow"]},
+    {"id":"155","title":"I See Heaven","artist":"Bryan & Katie Torwalt","keys":["F"],"bpm":70,"sig":"4/4","yt":"","ccli":"6087919","bibleRef":"","tags":["slow"],"history":["2025-10-05","2025-04-06","2024-11-10","2024-02-04"]},
+    {"id":"156","title":"I See The Lord","artist":"Chris Falson","keys":["Ab","Bb"],"bpm":66,"sig":"4/4","yt":"","ccli":"106482","bibleRef":"","tags":["slow"]},
+    {"id":"157","title":"I Speak Jesus","artist":"Charity Gayle","keys":["E"],"bpm":74,"sig":"4/4","yt":"","ccli":"7136201","bibleRef":"","tags":["slow","response"],"history":["2025-07-27","2024-07-27","2024-04-14","2024-02-11"]},
+    {"id":"158","title":"I Surrender","artist":"Hillsong","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"6177375","bibleRef":"","tags":["slow"],"history":["2026-01-11"]},
+    {"id":"159","title":"I Surrender All","artist":"Traditional","keys":["A","D"],"bpm":62,"sig":"4/4","yt":"","ccli":"23189","bibleRef":"","tags":["slow","hymn","response"],"history":["2025-01-12","2024-11-30","2024-11-17","2024-05-05","2024-04-28"]},
+    {"id":"160","title":"I Want To Know You","artist":"Jesus Culture","keys":["C","Eb"],"bpm":68,"sig":"4/4","yt":"","ccli":"5702111","bibleRef":"","tags":["slow"],"history":["2025-07-06","2025-02-09"]},
+    {"id":"161","title":"I Will Exalt","artist":"Bethel","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"5883501","bibleRef":"","tags":["slow"],"history":["2025-03-16"]},
+    {"id":"162","title":"I Won't Go Back","artist":"William McDowell","keys":["D"],"bpm":64,"sig":"4/4","yt":"","ccli":"5910977","bibleRef":"","tags":["slow"]},
+    {"id":"163","title":"I'll Fly Away","artist":"Traditional","keys":["D"],"bpm":120,"sig":"4/4","yt":"","ccli":"26399","bibleRef":"","tags":["fast"]},
+    {"id":"164","title":"In Christ Alone","artist":"Stuart Townend","keys":["C"],"bpm":64,"sig":"4/4","yt":"","ccli":"3350395","bibleRef":"","tags":["slow","response"],"history":["2025-07-13","2025-06-01","2025-04-06","2024-04-14"]},
+    {"id":"165","title":"In Jesus Name","artist":"Israel Houghton","keys":["C"],"bpm":128,"sig":"4/4","yt":"https://www.youtube.com/watch?v=TVsRM55_jsE","ccli":"6180924","bibleRef":"","tags":["fast","opener"],"history":["2026-06-14","2025-09-21","2025-09-14","2024-11-10","2024-01-28"]},
+    {"id":"166","title":"In The Highest","artist":"Hillsong","keys":["Ab","G"],"bpm":72,"sig":"4/4","yt":"","ccli":"4879202","bibleRef":"","tags":["slow"],"history":["2023-12-10"]},
+    {"id":"167","title":"In The Secret","artist":"Chris Tomlin","keys":["C"],"bpm":110,"sig":"4/4","yt":"","ccli":"1810119","bibleRef":"","tags":["fast"]},
+    {"id":"168","title":"Indescribable","artist":"Chris Tomlin","keys":["C"],"bpm":82,"sig":"4/4","yt":"","ccli":"4403076","bibleRef":"","tags":["fast","opener"],"history":["2026-05-17","2024-09-22"]},
+    {"id":"169","title":"Is He Worthy","artist":"Andrew Peterson","keys":["G"],"bpm":68,"sig":"4/4","yt":"","ccli":"7108951","bibleRef":"","tags":["slow"],"history":["2026-08-16","2026-05-17","2025-12-07","2024-10-13","2024-01-07","2023-12-31"]},
+    {"id":"170","title":"It Came Upon The Midnight Clear","artist":"Traditional","keys":["F"],"bpm":60,"sig":"4/4","yt":"","ccli":"31016","bibleRef":"","tags":["slow","hymn","christmas"],"history":["2025-12-24","2023-12-17"]},
+    {"id":"171","title":"It Is Well","artist":"Bethel","keys":["G"],"bpm":65,"sig":"4/4","yt":"","ccli":"7021972","bibleRef":"","tags":["slow"],"history":["2026-03-28"]},
+    {"id":"172","title":"It Is Well With My Soul","artist":"Traditional","keys":["C"],"bpm":64,"sig":"4/4","yt":"","ccli":"25376","bibleRef":"","tags":["slow","hymn"]},
+    {"id":"173","title":"Jesus Be The Name","artist":"Elevation Worship, Tiffany Hudson","keys":["Db"],"bpm":64,"sig":"4/4","bibleRef":"Philippians 2:9-11","tags":["slow"],"yt":"","ccli":"7268962","notes":"","history":["2026-04-19","2026-03-22"]},
+    {"id":"174","title":"Jesus Loves Me","artist":"Chris Tomlin","keys":["D"],"bpm":82,"sig":"4/4","bibleRef":"1 John 4:19","tags":["slow"],"yt":"","ccli":"7028829","notes":""},
+    {"id":"175","title":"Jesus Messiah","artist":"Chris Tomlin","keys":["D","Db"],"bpm":78,"sig":"4/4","bibleRef":"2 Corinthians 5:21","tags":["slow"],"yt":"https://www.youtube.com/watch?v=tdxSC1tHJn0","ccli":"5183443","notes":"","history":["2026-06-07","2025-06-22","2024-04-07"]},
+    {"id":"176","title":"Jesus Paid It All","artist":"Kristian Stanfill","keys":["B"],"bpm":77,"sig":"4/4","bibleRef":"Colossians 2:13-14","tags":["slow"],"yt":"","ccli":"4662491","notes":"","history":["2026-04-05","2025-10-19","2025-02-16","2024-03-30","2024-03-10"]},
+    {"id":"177","title":"Joy To The World","artist":"Traditional","keys":["G"],"bpm":120,"sig":"4/4","bibleRef":"Psalm 98:4","tags":["fast","christmas"],"yt":"","ccli":"24016","notes":"","history":["2025-12-21","2025-12-14","2024-12-01","2023-12-03"]},
+    {"id":"178","title":"Joy Unspeakable Joy","artist":"Chris Tomlin","keys":["G"],"bpm":132,"sig":"4/4","bibleRef":"1 Peter 1:8","tags":["fast","christmas"],"yt":"","ccli":"5607039","notes":""},
+    {"id":"179","title":"King Of Glory","artist":"Chris Tomlin","keys":["B","C"],"bpm":100,"sig":"4/4","bibleRef":"Psalm 24:7-10","tags":["medium"],"yt":"https://www.youtube.com/watch?v=4JdHFsG9dgQ","ccli":"4403588","notes":"","history":["2026-07-26","2026-01-25","2025-10-05","2024-02-18"]},
+    {"id":"180","title":"King Of Heaven","artist":"Paul Baloche","keys":["G"],"bpm":66,"sig":"4/4","bibleRef":"Isaiah 9:6","tags":["slow","christmas"],"yt":"","ccli":"5997804","notes":"","history":["2025-12-21","2024-12-01","2023-12-17","2023-12-10"]},
+    {"id":"181","title":"King Of Kings","artist":"Hillsong","keys":["D"],"bpm":68,"sig":"4/4","bibleRef":"1 Timothy 6:15","tags":["slow"],"yt":"https://www.youtube.com/watch?v=dQl4izxPeNU","ccli":"7127647","notes":"","history":["2026-08-30","2026-01-18","2025-10-19","2024-12-22","2024-07-27","2024-05-19","2024-05-05","2024-04-28"]},
+    {"id":"182","title":"King Of Majesty","artist":"Hillsong","keys":["G"],"bpm":116,"sig":"4/4","bibleRef":"Psalm 145:1","tags":["fast"],"yt":"","ccli":"3441315","notes":""},
+    {"id":"183","title":"King Of My Heart","artist":"John Mark McMillan","keys":["A","D"],"bpm":72,"sig":"4/4","bibleRef":"Psalm 34:8","tags":["slow"],"yt":"","ccli":"7046145","notes":"","history":["2025-03-23","2024-03-30"]},
+    {"id":"184","title":"Lead Me To The Cross","artist":"Hillsong","keys":["D"],"bpm":72,"sig":"4/4","bibleRef":"Matthew 16:24","tags":["slow"],"yt":"","ccli":"4785828","notes":"","history":["2026-04-12"]},
+    {"id":"185","title":"Let Everything That Has Breath","artist":"Matt Redman","keys":["C"],"bpm":124,"sig":"4/4","bibleRef":"Psalm 150:6","tags":["fast"],"yt":"","ccli":"2403511","notes":""},
+    {"id":"186","title":"Let God Arise","artist":"Chris Tomlin","keys":["C","D","Db","G"],"bpm":120,"sig":"4/4","bibleRef":"Psalm 68:1","tags":["fast"],"yt":"","ccli":"4822417","notes":""},
+    {"id":"187","title":"Let It Rise","artist":"Holland Davis","keys":["B","Bb"],"bpm":110,"sig":"4/4","bibleRef":"Psalm 113:3","tags":["fast"],"yt":"","ccli":"2242095","notes":"","history":["2025-11-23","2025-06-28","2025-03-16","2024-11-24","2024-08-18"]},
+    {"id":"188","title":"Let The Light In","artist":"Cody Carnes","keys":["C"],"bpm":78,"sig":"4/4","bibleRef":"2 Corinthians 4:6","tags":["medium"],"yt":"","ccli":"7144211","notes":"","history":["2024-09-22"]},
+    {"id":"189","title":"Lift Jesus Higher","artist":"Traditional","keys":["Bb"],"bpm":130,"sig":"4/4","bibleRef":"John 12:32","tags":["fast"],"yt":"","ccli":"11729","notes":""},
+    {"id":"190","title":"Lift The Name of Jesus","artist":"Traditional","keys":["D"],"bpm":120,"sig":"4/4","bibleRef":"Psalm 34:3","tags":["fast"],"yt":"","ccli":"27738","notes":""},
+    {"id":"191","title":"Like A Fire","artist":"Planetshakers","keys":["Eb"],"bpm":70,"sig":"4/4","bibleRef":"Jeremiah 20:9","tags":["slow"],"yt":"","ccli":"6025287","notes":""},
+    {"id":"342","title":"Living Hope","artist":"Phil Wickham","keys":["A"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=e0bGO0-NLLE","ccli":"7106807","bibleRef":"","tags":["slow"],"notes":"","history":["2026-07-19","2026-02-15","2025-11-02"]},
+    {"id":"192","title":"Look What The Lord Has Done","artist":"Traditional","keys":["D"],"bpm":126,"sig":"4/4","bibleRef":"Psalm 126:3","tags":["fast"],"yt":"","ccli":"27738","notes":""},
+    {"id":"193","title":"Lord I Am Broken","artist":"Traditional","keys":["C"],"bpm":65,"sig":"4/4","bibleRef":"Psalm 34:18","tags":["slow"],"yt":"","ccli":"14181","notes":""},
+    {"id":"194","title":"Lord I Lift Your Name on High","artist":"Rick Founds","keys":["F"],"bpm":120,"sig":"4/4","bibleRef":"Psalm 30:1","tags":["fast"],"yt":"","ccli":"117947","notes":""},
+    {"id":"195","title":"Lord I Need You","artist":"Matt Maher","keys":["B"],"bpm":74,"sig":"4/4","bibleRef":"Matthew 11:28","tags":["slow"],"yt":"","ccli":"5925687","notes":"","history":["2025-11-09"]},
+    {"id":"196","title":"Love Came Down","artist":"Bethel","keys":["C"],"bpm":72,"sig":"4/4","bibleRef":"1 John 4:9","tags":["slow"],"yt":"","ccli":"5920352","notes":""},
+    {"id":"197","title":"Love Knows No End","artist":"Hillsong","keys":["D"],"bpm":76,"sig":"4/4","bibleRef":"Ephesians 3:18-19","tags":["slow"],"yt":"","ccli":"5639832","notes":""},
+    {"id":"198","title":"Love the Lord","artist":"Lincoln Brewster","keys":["D"],"bpm":112,"sig":"4/4","bibleRef":"Mark 12:30","tags":["fast"],"yt":"","ccli":"4572938","notes":""},
+    {"id":"199","title":"Made Me Glad","artist":"Miriam Webster","keys":["Bb"],"bpm":72,"sig":"4/4","bibleRef":"Psalm 92:4","tags":["slow"],"yt":"https://www.youtube.com/watch?v=C4L3rnUtCaE","ccli":"3290644","notes":"","history":["2026-06-28","2025-08-10"]},
+    {"id":"200","title":"Magnify The Lord","artist":"Traditional","keys":["F"],"bpm":125,"sig":"4/4","bibleRef":"Luke 1:46","tags":["fast"],"yt":"","ccli":"11729","notes":""},
+    {"id":"201","title":"Majestic","artist":"Lincoln Brewster","keys":["B","G"],"bpm":112,"sig":"4/4","bibleRef":"Psalm 8:1","tags":["fast"],"yt":"","ccli":"4572938","notes":"","history":["2024-11-10"]},
+    {"id":"202","title":"Majesty","artist":"Jack Hayford","keys":["E"],"bpm":72,"sig":"4/4","yt":"","ccli":"1527","bibleRef":"","tags":["slow"]},
+    {"id":"203","title":"Make Room","artist":"The Belonging Co","keys":["F#"],"bpm":58,"sig":"4/4","yt":"https://www.youtube.com/watch?v=Qt0ziGaDkKE","ccli":"7122057","bibleRef":"","tags":["slow","response"],"history":["2026-08-30","2026-06-28","2026-01-04","2025-06-15","2025-02-16","2024-07-21","2024-05-26"]},
+    {"id":"204","title":"Marvelous Light","artist":"Charlie Hall","keys":["Db"],"bpm":122,"sig":"4/4","yt":"","ccli":"4556538","bibleRef":"","tags":["fast"]},
+    {"id":"205","title":"Mary Did You Know","artist":"Mark Lowry","keys":["Am"],"bpm":53,"sig":"4/4","yt":"","ccli":"839225","bibleRef":"","tags":["slow","christmas"]},
+    {"id":"206","title":"Mighty Breath Of God","artist":"Jeremy Riddle","keys":["Bb","Db","Eb"],"bpm":68,"sig":"4/4","yt":"","ccli":"5161619","bibleRef":"","tags":["slow"],"history":["2024-02-18"]},
+    {"id":"207","title":"Mighty To Save","artist":"Hillsong","keys":["D"],"bpm":74,"sig":"4/4","yt":"","ccli":"4591782","bibleRef":"","tags":["slow"],"history":["2024-10-06","2024-04-28","2023-12-03"]},
+    {"id":"208","title":"More And More","artist":"Israel Houghton","keys":["G"],"bpm":68,"sig":"4/4","yt":"","ccli":"4455213","bibleRef":"","tags":["slow"],"history":["2024-03-10"]},
+    {"id":"209","title":"More Like Jesus","artist":"Passion","keys":["C"],"bpm":68,"sig":"4/4","yt":"","ccli":"7107484","bibleRef":"","tags":["slow","response"],"history":["2025-05-25","2024-06-09","2024-05-05","2024-03-10"]},
+    {"id":"210","title":"More Love More Power","artist":"Michael W. Smith","keys":["Em"],"bpm":72,"sig":"4/4","yt":"","ccli":"19717","bibleRef":"","tags":["slow"]},
+    {"id":"211","title":"Moving Forward","artist":"Israel Houghton","keys":["A"],"bpm":72,"sig":"4/4","yt":"","ccli":"4991035","bibleRef":"","tags":["slow"]},
+    {"id":"212","title":"My Beloved","artist":"Crowder","keys":["C"],"bpm":120,"sig":"4/4","yt":"","ccli":"7102392","bibleRef":"","tags":["fast"]},
+    {"id":"213","title":"My God (When The Praises Go Up)","artist":"Israel Houghton","keys":["Db"],"bpm":124,"sig":"4/4","yt":"","ccli":"4034425","bibleRef":"","tags":["fast"]},
+    {"id":"214","title":"My Hope Is Built","artist":"Traditional","keys":["D"],"bpm":74,"sig":"4/4","yt":"","ccli":"25417","bibleRef":"","tags":["slow","hymn"],"history":["2026-02-15"]},
+    {"id":"215","title":"My Jesus I Love Thee","artist":"Traditional","keys":["C"],"bpm":62,"sig":"4/4","yt":"","ccli":"27817","bibleRef":"","tags":["slow","hymn","response"],"history":["2026-01-18","2025-09-14","2025-01-19"]},
+    {"id":"216","title":"My Redeemer Lives","artist":"Hillsong","keys":["E"],"bpm":122,"sig":"4/4","yt":"https://www.youtube.com/watch?v=3glYEDzSyok","ccli":"2397964","bibleRef":"","tags":["fast","opener"],"history":["2026-07-26","2025-02-09"]},
+    {"id":"217","title":"My Soul Magnifies The Lord","artist":"Chris Tomlin","keys":["D"],"bpm":74,"sig":"4/4","yt":"","ccli":"5607053","bibleRef":"","tags":["fast","opener","christmas"],"history":["2025-12-21","2024-12-22","2024-12-08","2023-12-10"]},
+    {"id":"218","title":"My Tribute","artist":"Andraé Crouch","keys":["C"],"bpm":66,"sig":"4/4","yt":"","ccli":"11218","bibleRef":"","tags":["slow"]},
+    {"id":"219","title":"Never Once","artist":"Matt Redman","keys":["B"],"bpm":72,"sig":"4/4","yt":"","ccli":"5997055","bibleRef":"","tags":["slow"]},
+    {"id":"220","title":"No Longer Slaves","artist":"Bethel","keys":["Bb"],"bpm":74,"sig":"4/4","yt":"https://www.youtube.com/watch?v=f8TkUMJtK5k","ccli":"7030123","bibleRef":"","tags":["slow"],"history":["2026-08-23","2026-02-22","2025-11-02","2025-08-10","2025-06-01"]},
+    {"id":"221","title":"None But Jesus","artist":"Hillsong","keys":["C"],"bpm":70,"sig":"4/4","yt":"","ccli":"4705152","bibleRef":"","tags":["slow"]},
+    {"id":"222","title":"Not To Us","artist":"Chris Tomlin","keys":["Eb"],"bpm":120,"sig":"4/4","yt":"","ccli":"4031071","bibleRef":"","tags":["fast","opener"],"history":["2026-04-19","2025-08-24","2024-08-25","2024-07-07"]},
+    {"id":"223","title":"Nothing But The Blood","artist":"Matt Redman","keys":["Bb","Db"],"bpm":105,"sig":"4/4","yt":"","ccli":"4329411","bibleRef":"","tags":["medium","opener"],"history":["2024-02-25"]},
+    {"id":"224","title":"O Come All Ye Faithful","artist":"Traditional","keys":["C","D"],"bpm":60,"sig":"4/4","yt":"","ccli":"31054","bibleRef":"","tags":["slow","hymn","christmas","response"],"history":["2025-12-21","2025-12-14","2024-12-08","2023-12-10"]},
+    {"id":"225","title":"O Come O Come Emmanuel","artist":"Traditional","keys":["C"],"bpm":55,"sig":"4/4","yt":"","ccli":"31982","bibleRef":"","tags":["slow","hymn","christmas"],"history":["2025-12-24","2024-12-22","2023-12-24","2023-12-10"]},
+    {"id":"226","title":"O Come To The Altar","artist":"Elevation Worship","keys":["C"],"bpm":70,"sig":"4/4","yt":"","ccli":"7051511","bibleRef":"","tags":["slow","response"],"history":["2026-02-15","2024-09-08","2024-07-27","2024-07-14","2024-01-28"]},
+    {"id":"227","title":"O Holy Night","artist":"Traditional","keys":["F","G"],"bpm":65,"sig":"4/4","yt":"","ccli":"32015","bibleRef":"","tags":["slow","hymn","christmas"],"history":["2025-12-24","2023-12-17"]},
+    {"id":"228","title":"O Little Town Of Bethlehem","artist":"Traditional","keys":["Eb"],"bpm":62,"sig":"4/4","yt":"","ccli":"27879","bibleRef":"","tags":["slow","hymn","christmas"],"history":["2025-12-24"]},
+    {"id":"229","title":"O Praise Him","artist":"David Crowder","keys":["Db"],"bpm":84,"sig":"4/4","yt":"https://www.youtube.com/watch?v=PL6yEMZCUSA","ccli":"4158023","bibleRef":"","tags":["medium"],"history":["2026-07-05"]},
+    {"id":"230","title":"O The Blood","artist":"Gateway Worship","keys":["Eb"],"bpm":68,"sig":"4/4","yt":"","ccli":"5620412","bibleRef":"","tags":["slow"]},
+    {"id":"231","title":"Oceans (Where Feet May Fail)","artist":"Hillsong","keys":["D"],"bpm":66,"sig":"4/4","yt":"https://www.youtube.com/watch?v=dy9nwe9_xzw","ccli":"6428767","bibleRef":"","tags":["slow"],"history":["2026-08-23","2026-03-28","2026-03-15","2024-05-26"]},
+    {"id":"232","title":"One Thing Remains","artist":"Jesus Culture","keys":["C"],"bpm":74,"sig":"4/4","yt":"","ccli":"5508444","bibleRef":"","tags":["slow"],"history":["2026-05-03","2025-11-23","2024-11-24"]},
+    {"id":"233","title":"Only King Forever","artist":"Elevation Worship","keys":["C"],"bpm":120,"sig":"4/4","yt":"","ccli":"7011438","bibleRef":"","tags":["fast"]},
+    {"id":"234","title":"Open The Eyes Of My Heart","artist":"Paul Baloche","keys":["Ab","C","D"],"bpm":105,"sig":"4/4","yt":"","ccli":"2691540","bibleRef":"","tags":["medium","response"],"history":["2025-06-28"]},
+    {"id":"235","title":"Open Up The Heavens","artist":"Meredith Andrews","keys":["Bb"],"bpm":98,"sig":"4/4","yt":"","ccli":"6304702","bibleRef":"","tags":["fast","opener"],"history":["2026-05-17","2025-11-30","2025-06-08","2025-03-23","2024-10-27","2023-11-26"]},
+    {"id":"236","title":"Open Up The Sky","artist":"Delirious?","keys":["E"],"bpm":82,"sig":"4/4","yt":"","ccli":"4749448","bibleRef":"","tags":["medium"],"history":["2025-05-11"]},
+    {"id":"237","title":"Our God","artist":"Chris Tomlin","keys":["D"],"bpm":105,"sig":"4/4","yt":"","ccli":"5677414","bibleRef":"","tags":["medium","opener"],"history":["2025-06-22","2024-09-29"]},
+    {"id":"238","title":"Our King Has Come","artist":"Zachary Loomis","keys":["C","Db","E"],"bpm":70,"sig":"4/4","yt":"https://www.youtube.com/watch?v=yP-k0pKpqXc","ccli":"7033503","bibleRef":"","tags":["slow"],"history":["2026-07-19","2024-11-30"]},
+    {"id":"239","title":"Power in the Blood","artist":"Traditional","keys":["Eb"],"bpm":120,"sig":"4/4","yt":"","ccli":"11729","bibleRef":"","tags":["fast","hymn"]},
+    {"id":"240","title":"Praise Before My Breakthrough","artist":"Bryan & Katie Torwalt","keys":["Db","E"],"bpm":72,"sig":"4/4","yt":"","ccli":"7110321","bibleRef":"","tags":["slow"],"history":["2026-02-08","2024-01-28"]},
+    {"id":"241","title":"Praise Of Heaven","artist":"Zachery Dusing","keys":["E"],"bpm":64,"sig":"4/4","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["slow","original"],"history":["2024-10-13","2024-09-29"]},
+    {"id":"242","title":"Prepare Him Room","artist":"Sovereign Grace","keys":["G"],"bpm":76,"sig":"4/4","yt":"","ccli":"7027157","bibleRef":"","tags":["medium"],"history":["2025-12-07","2024-12-15","2023-12-24"]},
+    {"id":"243","title":"Psalm 23 I Am Not Alone","artist":"Joshua Sherman","keys":["D"],"bpm":63,"sig":"4/4","yt":"","ccli":"7111981","bibleRef":"Psalm 23","tags":["slow"],"history":["2025-08-24","2024-08-25","2024-04-21"]},
+    {"id":"244","title":"Psalm 46 (Lord Of Hosts)","artist":"Shane & Shane","keys":["C#m"],"bpm":69,"sig":"4/4","yt":"","ccli":"7053138","bibleRef":"","tags":["slow"],"history":["2026-01-11","2025-06-15","2024-07-27"]},
+    {"id":"245","title":"Raise A Hallelujah","artist":"Bethel","keys":["Db"],"bpm":82,"sig":"4/4","yt":"https://www.youtube.com/watch?v=G2XtRuPfaAU","ccli":"7119315","bibleRef":"","tags":["medium","response"],"history":["2026-07-05","2025-10-19","2024-12-29","2024-03-24","2024-01-07","2023-12-03"]},
+    {"id":"340","title":"Reckless Love","artist":"Cory Asbury","keys":["F#"],"bpm":56,"sig":"6/8","yt":"https://www.youtube.com/watch?v=Sc6SSHuZvQE","ccli":"7089641","bibleRef":"","tags":["slow"],"notes":"Paired with Even If","history":["2026-07-19","2026-03-29","2026-03-28"]},
+    {"id":"246","title":"Rescue","artist":"Lauren Daigle","keys":["Ab"],"bpm":68,"sig":"4/4","yt":"","ccli":"7113110","bibleRef":"","tags":["slow"]},
+    {"id":"247","title":"Rest On Us","artist":"Maverick City","keys":["Bb"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=R8MZbl-GRdY","ccli":"7160295","bibleRef":"","tags":["slow"],"history":["2026-05-24","2026-05-03","2025-08-03","2025-06-08","2025-03-09","2024-03-30","2024-02-25"]},
+    {"id":"248","title":"Resurrecting","artist":"Elevation Worship","keys":["Db"],"bpm":74,"sig":"4/4","yt":"","ccli":"7051510","bibleRef":"","tags":["slow"]},
+    {"id":"249","title":"Revelation Song","artist":"Kari Jobe","keys":["D"],"bpm":64,"sig":"4/4","yt":"","ccli":"4447960","bibleRef":"","tags":["slow"],"history":["2025-12-07","2025-11-23","2024-11-24","2024-08-11","2024-03-17"]},
+    {"id":"250","title":"Rooftops","artist":"Jesus Culture","keys":["E"],"bpm":76,"sig":"4/4","yt":"","ccli":"5881020","bibleRef":"","tags":["medium"],"history":["2025-07-13"]},
+    {"id":"251","title":"Savior King","artist":"Hillsong","keys":["E"],"bpm":68,"sig":"4/4","yt":"","ccli":"4879202","bibleRef":"","tags":["slow"]},
+    {"id":"252","title":"Say So","artist":"Israel Houghton","keys":["Db"],"bpm":125,"sig":"4/4","yt":"","ccli":"4556552","bibleRef":"","tags":["fast"]},
+    {"id":"253","title":"Say The Name","artist":"Martha Munizzi","keys":["D","Eb"],"bpm":68,"sig":"4/4","yt":"","ccli":"3675032","bibleRef":"","tags":["slow"]},
+    {"id":"254","title":"Seek First","artist":"Housefires","keys":["F"],"bpm":70,"sig":"4/4","yt":"","ccli":"7070345","bibleRef":"","tags":["slow","response"],"history":["2026-04-19","2025-09-07","2024-11-03","2024-02-25"]},
+    {"id":"255","title":"Set A Fire","artist":"Will Reagan","keys":["Eb"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=xRTIQgbodW4","ccli":"6087919","bibleRef":"","tags":["slow","response"],"history":["2026-06-14","2024-04-21"]},
+    {"id":"256","title":"Silent Night","artist":"Traditional","keys":["G"],"bpm":60,"sig":"4/4","yt":"","ccli":"27893","bibleRef":"","tags":["slow","hymn","christmas"],"history":["2025-12-24","2023-12-24"]},
+    {"id":"257","title":"Sing It Out","artist":"Zachery Dusing","keys":["G"],"bpm":112,"sig":"4/4","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["fast","original"]},
+    {"id":"258","title":"Sing Sing Sing","artist":"Chris Tomlin","keys":["Eb"],"bpm":115,"sig":"4/4","yt":"","ccli":"5124055","bibleRef":"","tags":["fast"]},
+    {"id":"259","title":"Sing To The King","artist":"Billy J. Foote","keys":["D"],"bpm":120,"sig":"4/4","yt":"","ccli":"4034425","bibleRef":"","tags":["fast","opener"],"history":["2026-04-05","2025-12-07","2025-04-13","2024-12-08","2024-04-28","2023-12-24"]},
+    {"id":"260","title":"So Will I","artist":"Hillsong","keys":["D"],"bpm":64,"sig":"4/4","yt":"https://www.youtube.com/watch?v=GfVd5x9W1Xc","ccli":"7084128","bibleRef":"","tags":["slow"],"history":["2026-05-31","2024-10-27","2024-06-02","2024-05-12","2024-02-25"]},
+    {"id":"261","title":"Song For The Bride","artist":"Brian Doerksen","keys":["E"],"bpm":68,"sig":"4/4","yt":"","ccli":"4034346","bibleRef":"","tags":["slow"]},
+    {"id":"262","title":"Speak The Name","artist":"Koryn Hawthorne","keys":["Ab"],"bpm":74,"sig":"4/4","yt":"","ccli":"7088647","bibleRef":"","tags":["slow"]},
+    {"id":"263","title":"Spirit Break Out","artist":"Luke Hellebronth","keys":["G"],"bpm":74,"sig":"4/4","yt":"","ccli":"6058450","bibleRef":"","tags":["slow"]},
+    {"id":"264","title":"Start A Fire","artist":"Unspoken","keys":["E"],"bpm":100,"sig":"4/4","yt":"","ccli":"7023163","bibleRef":"","tags":["slow"]},
+    {"id":"265","title":"Step By Step","artist":"Rich Mullins","keys":["F"],"bpm":70,"sig":"4/4","yt":"","ccli":"69472","bibleRef":"","tags":["slow"]},
+    {"id":"266","title":"Still","artist":"Hillsong","keys":["A","Bb"],"bpm":70,"sig":"4/4","yt":"","ccli":"3940963","bibleRef":"","tags":["slow"],"history":["2025-08-03","2024-11-30"]},
+    {"id":"267","title":"Stronger","artist":"Hillsong","keys":["A"],"bpm":73,"sig":"4/4","yt":"","ccli":"5060810","bibleRef":"","tags":["slow"]},
+    {"id":"345","title":"Such An Awesome God","artist":["Maverick City","Maryanne J. George"],"keys":["E"],"bpm":66,"sig":"4/4","yt":"","ccli":"7130622","bibleRef":"","tags":["slow"],"notes":"","history":["2026-06-28","2026-06-21","2026-06-20"]},
+    {"id":"268","title":"Surely The Presence of the Lord","artist":"Lanny Wolfe","keys":["A"],"bpm":66,"sig":"4/4","yt":"","ccli":"7909","bibleRef":"","tags":["slow"]},
+    {"id":"269","title":"Surrounded / Fight My Battles","artist":"Upperroom","keys":["F"],"bpm":72,"sig":"4/4","yt":"","ccli":"7107563","bibleRef":"","tags":["slow"],"history":["2025-10-12","2024-01-07"]},
+    {"id":"270","title":"Sweetly Broken","artist":"Jeremy Camp","keys":["Eb"],"bpm":80,"sig":"4/4","yt":"","ccli":"4514635","bibleRef":"","tags":["medium"]},
+    {"id":"271","title":"Take Me In","artist":"Kutless","keys":["C#m"],"bpm":72,"sig":"4/4","yt":"","ccli":"17590","bibleRef":"","tags":["slow"]},
+    {"id":"272","title":"Teu Espirito","artist":"Fernandinho","keys":["G"],"bpm":68,"sig":"4/4","yt":"","ccli":"7115852","bibleRef":"","tags":["slow"],"history":["2025-08-17","2024-08-18","2024-07-28"]},
+    {"id":"273","title":"Thank You Jesus For The Blood","artist":"Charity Gayle","keys":["Bb"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=dhU-Omwg2rU","ccli":"7169680","bibleRef":"","tags":["slow","response"],"history":["2026-07-12","2026-04-05","2025-10-12","2025-08-31","2024-09-01","2024-03-31","2024-03-03"]},
+    {"id":"274","title":"The Anthem","artist":"Planetshakers","keys":["Db","E"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=qN58WN2IIzk&t=110s","ccli":"5060717","bibleRef":"","tags":["slow","response"],"history":["2026-07-19","2026-05-31","2025-04-20","2024-11-30","2024-11-17"]},
+    {"id":"275","title":"The Father's House","artist":"Cory Asbury","keys":["G"],"bpm":81,"sig":"4/4","yt":"","ccli":"7138062","bibleRef":"","tags":["medium"],"history":["2025-09-07","2024-03-03"]},
+    {"id":"276","title":"The Heart of Worship","artist":"Matt Redman","keys":["Bb"],"bpm":72,"sig":"4/4","yt":"","ccli":"2296522","bibleRef":"","tags":["slow"],"history":["2025-06-28","2024-09-08","2023-11-26"]},
+    {"id":"277","title":"The Joy","artist":"The Belonging Co","keys":["E"],"bpm":132,"sig":"4/4","yt":"https://www.youtube.com/watch?v=5ig1-1gO_Os","ccli":"7107530","bibleRef":"","tags":["fast","opener"],"history":["2026-08-23","2026-05-10","2026-01-11","2025-10-26","2025-07-27","2025-06-01","2024-12-01","2024-09-15","2024-07-28","2024-07-27","2024-07-14","2024-03-30"]},
+    {"id":"278","title":"The Lion and the Lamb","artist":"Bethel","keys":["B"],"bpm":90,"sig":"4/4","yt":"","ccli":"7038281","bibleRef":"","tags":["fast","opener"],"history":["2026-05-10","2026-02-15","2025-11-02","2025-10-05","2025-09-14","2025-03-16","2024-03-31","2024-02-18"]},
+    {"id":"279","title":"The Lord Reigns","artist":"Dan Moen","keys":["C","F"],"bpm":124,"sig":"4/4","yt":"","ccli":"21361","bibleRef":"","tags":["fast","key change"]},
+    {"id":"280","title":"The More I Seek You","artist":"Zach Neese","keys":["Eb"],"bpm":68,"sig":"4/4","yt":"","ccli":"2740924","bibleRef":"","tags":["slow","response"],"history":["2025-07-20"]},
+    {"id":"281","title":"The Name of The Lord","artist":"Clinton Utterbach","keys":["Db","Eb"],"bpm":120,"sig":"4/4","yt":"","ccli":"265239","bibleRef":"Proverbs 18:10","tags":["fast","opener"],"history":["2025-01-12"]},
+    {"id":"282","title":"The Potter's Hand","artist":"Darlene Zschech","keys":["Eb","F"],"bpm":68,"sig":"4/4","yt":"","ccli":"2449115","bibleRef":"","tags":["slow"]},
+    {"id":"283","title":"The Power Of Your Love","artist":"Geoff Bullock","keys":["F"],"bpm":72,"sig":"4/4","yt":"","ccli":"917491","bibleRef":"","tags":["slow"]},
+    {"id":"284","title":"The Stand","artist":"Hillsong","keys":["F"],"bpm":72,"sig":"4/4","yt":"","ccli":"4705248","bibleRef":"","tags":["slow","response"],"history":["2025-06-28","2025-06-22"]},
+    {"id":"285","title":"There's Something About That Name","artist":"Bill Gaither","keys":["Eb"],"bpm":60,"sig":"4/4","yt":"","ccli":"14064","bibleRef":"","tags":["slow"],"history":["2024-06-02","2024-05-12"]},
+    {"id":"286","title":"This I Believe","artist":"Hillsong","keys":["D"],"bpm":72,"sig":"4/4","yt":"","ccli":"7018338","bibleRef":"","tags":["medium"]},
+    {"id":"287","title":"This Is Amazing Grace","artist":"Phil Wickham","keys":["D","Db"],"bpm":98,"sig":"4/4","yt":"https://www.youtube.com/watch?v=z8POgaP7_NY","ccli":"6333481","bibleRef":"","tags":["fast","opener"],"history":["2026-07-12","2026-05-03","2026-02-08","2025-06-15","2025-02-09","2024-03-17"]},
+    {"id":"288","title":"This Is How We Overcome","artist":"Hillsong","keys":["A"],"bpm":128,"sig":"4/4","yt":"","ccli":"2190590","bibleRef":"","tags":["fast"]},
+    {"id":"289","title":"This Is The Day","artist":"Les Garrett","keys":["Bb"],"bpm":120,"sig":"4/4","yt":"","ccli":"32754","bibleRef":"","tags":["fast","key change"]},
+    {"id":"290","title":"To Him Who Sits On The Throne","artist":"Debanye Brunette","keys":["Ab","G"],"bpm":66,"sig":"4/4","yt":"https://www.youtube.com/watch?v=kt_d7yMqsD0","ccli":"20512","bibleRef":"","tags":["slow"],"history":["2026-06-14","2025-07-20","2024-04-28"]},
+    {"id":"291","title":"To Worship You I Live","artist":"Israel Houghton","keys":["Db"],"bpm":64,"sig":"4/4","yt":"","ccli":"4455244","bibleRef":"","tags":["slow"]},
+    {"id":"292","title":"Trading My Sorrows","artist":"Darrell Evans","keys":["E"],"bpm":125,"sig":"4/4","yt":"","ccli":"3223886","bibleRef":"","tags":["fast","opener"],"history":["2025-07-27","2024-01-21"]},
+    {"id":"346","title":"Tremble","artist":"MOSAIC MSC","keys":["C"],"bpm":74,"sig":"4/4","yt":"https://www.youtube.com/watch?v=dL_d2mbNZNA","ccli":"7065049","bibleRef":"","tags":["slow"],"notes":"","history":["2026-07-26","2026-07-05"]},
+    {"id":"293","title":"Turn Your Eyes Upon Jesus","artist":"Traditional","keys":["Ab","Bb","E"],"bpm":64,"sig":"4/4","yt":"","ccli":"1596","bibleRef":"","tags":["slow","hymn"],"history":["2026-04-26","2025-11-16","2023-11-26"]},
+    {"id":"294","title":"Victor's Crown","artist":"Darlene Zschech","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"6454625","bibleRef":"","tags":["slow"]},
+    {"id":"295","title":"Victory In Jesus","artist":"Traditional","keys":["B","Eb"],"bpm":88,"sig":"4/4","yt":"","ccli":"12517","bibleRef":"","tags":["fast","hymn","opener"],"history":["2024-03-31"]},
+    {"id":"296","title":"Wait on You","artist":"Elevation & Maverick","keys":["Bb"],"bpm":70,"sig":"6/8","yt":"","ccli":"7171578","bibleRef":"","tags":["slow"]},
+    {"id":"297","title":"Waiting Here For You","artist":"Christy Nockels","keys":["Bb","C","E","Eb"],"bpm":72,"sig":"4/4","yt":"","ccli":"5925663","bibleRef":"","tags":["slow"],"history":["2024-12-08"]},
+    {"id":"298","title":"Waymaker","artist":"Sinach","keys":["D"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=W-tudryaUvw","ccli":"7115744","bibleRef":"","tags":["slow","response"],"history":["2026-05-31","2024-07-27","2024-06-30","2024-05-19","2023-12-31"]},
+    {"id":"299","title":"We Are Hungry","artist":"Jesus Culture","keys":["A"],"bpm":72,"sig":"4/4","yt":"","ccli":"5702111","bibleRef":"","tags":["slow"]},
+    {"id":"300","title":"We Believe","artist":"Newsboys","keys":["C"],"bpm":80,"sig":"4/4","yt":"","ccli":"6367165","bibleRef":"","tags":["fast"]},
+    {"id":"301","title":"We Fall Down","artist":"Chris Tomlin","keys":["D"],"bpm":67,"sig":"4/4","yt":"","ccli":"3097328","bibleRef":"","tags":["slow"],"history":["2026-05-10","2025-11-23","2025-10-12","2025-03-09","2024-11-24","2024-03-30"]},
+    {"id":"302","title":"We Will Dance","artist":"David Ruis","keys":["B"],"bpm":124,"sig":"4/4","yt":"","ccli":"1029238","bibleRef":"","tags":["fast"]},
+    {"id":"303","title":"We Will Feast in the House of Zion","artist":"Sandra McCracken","keys":["E"],"bpm":72,"sig":"4/4","yt":"","ccli":"7041364","bibleRef":"","tags":["slow"]},
+    {"id":"304","title":"Welcome Holy Spirit","artist":"Jimmy Swaggart","keys":["C","Db"],"bpm":120,"sig":"4/4","yt":"","ccli":"27738","bibleRef":"","tags":["fast","opener"],"history":["2024-03-24"]},
+    {"id":"305","title":"What A Beautiful Name","artist":"Hillsong","keys":["D"],"bpm":68,"sig":"4/4","yt":"","ccli":"7068424","bibleRef":"","tags":["slow"],"history":["2026-02-22","2025-11-09","2025-05-25","2025-01-26"]},
+    {"id":"306","title":"What A Mighty God We Serve","artist":"Traditional","keys":["Ab"],"bpm":125,"sig":"4/4","yt":"","ccli":"27738","bibleRef":"","tags":["fast","key change"]},
+    {"id":"307","title":"What Child Is This","artist":"Traditional","keys":["Cm"],"bpm":64,"sig":"4/4","yt":"","ccli":"30973","bibleRef":"","tags":["slow","christmas"],"history":["2025-12-24","2024-12-22"]},
+    {"id":"308","title":"What Love Is This","artist":"Kari Jobe","keys":["Ab","G"],"bpm":68,"sig":"4/4","yt":"","ccli":"6364821","bibleRef":"","tags":["slow","response"],"history":["2024-09-08"]},
+    {"id":"309","title":"What We Were","artist":"Zachery Dusing","keys":["Db"],"bpm":64,"sig":"6/8","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["slow","original"],"history":["2024-08-11","2024-02-11"]},
+    {"id":"310","title":"When I Think About The Lord","artist":"James Huey","keys":["C"],"bpm":124,"sig":"4/4","yt":"","ccli":"3441315","bibleRef":"","tags":["medium"]},
+    {"id":"311","title":"When You Walk Into The Room","artist":"Bryan & Katie Torwalt","keys":["Bb"],"bpm":72,"sig":"4/4","yt":"https://www.youtube.com/watch?v=8Zqg5k_GUx4","ccli":"7016301","bibleRef":"","tags":["slow"],"history":["2026-08-16","2026-08-09","2026-05-10","2025-03-30","2025-03-09","2024-03-30"]},
+    {"id":"312","title":"Where You Go I Go","artist":"Jesus Culture","keys":["Dm"],"bpm":72,"sig":"4/4","yt":"","ccli":"5161619","bibleRef":"","tags":["slow"]},
+    {"id":"347","title":"Who Else","artist":"Abbie Gamboa, Gateway","keys":["Ab"],"bpm":68,"sig":"4/4","yt":"https://www.youtube.com/watch?v=oujEfZie7jg","ccli":"7223119","bibleRef":"","tags":["slow"],"notes":"","history":["2026-08-16"]},
+    {"id":"313","title":"Who You Say I Am","artist":"Hillsong","keys":["F#"],"bpm":58,"sig":"4/4","yt":"","ccli":"7102401","bibleRef":"","tags":["slow","response"],"history":["2025-07-20","2025-05-25","2025-05-18"]},
+    {"id":"314","title":"Withholding Nothing","artist":"William McDowell","keys":["A","C"],"bpm":64,"sig":"4/4","yt":"","ccli":"7003449","bibleRef":"","tags":["slow","response"],"history":["2025-03-16"]},
+    {"id":"315","title":"Wonderful Merciful Savior","artist":"Selah","keys":["Ab"],"bpm":66,"sig":"4/4","yt":"","ccli":"106482","bibleRef":"","tags":["slow","response"],"history":["2024-10-13"]},
+    {"id":"316","title":"Worship The Lord","artist":"Traditional","keys":["B"],"bpm":128,"sig":"4/4","yt":"","ccli":"11729","bibleRef":"","tags":["fast"]},
+    {"id":"317","title":"Worshipping You","artist":"Israel Houghton","keys":["Ab"],"bpm":68,"sig":"4/4","yt":"","ccli":"4455213","bibleRef":"","tags":["slow"]},
+    {"id":"318","title":"Worthy Is The Lamb","artist":"Hillsong","keys":["G"],"bpm":66,"sig":"4/4","yt":"","ccli":"3217563","bibleRef":"","tags":["slow"],"history":["2023-11-26"]},
+    {"id":"319","title":"Worthy Of It All","artist":"CeCe Winans","keys":["C","F"],"bpm":66,"sig":"4/4","yt":"","ccli":"6280644","bibleRef":"","tags":["slow","response"],"history":["2026-06-21","2026-03-01","2025-10-26","2025-10-05","2025-08-24","2024-12-08","2024-08-25","2024-04-07"]},
+    {"id":"349","title":"Worthy Of My Song","artist":"Phil Wickham, Steven Furtick","keys":["F"],"bpm":70,"sig":"4/4","yt":"","ccli":"7195525","bibleRef":"","tags":["slow"],"notes":"Introducing at the September 12 worship night.","history":["2026-09-12"]},
+    {"id":"320","title":"Worthy Of The Calling","artist":"Zachery Dusing","keys":["Bb"],"bpm":75,"sig":"4/4","yt":"","ccli":"ORIGINAL","bibleRef":"","tags":["slow","original"],"history":["2026-08-09","2026-05-10","2026-02-22","2025-12-28"]},
+    {"id":"321","title":"Wrap Me In Your Arms ","artist":"Daniel Grothe","keys":["Bm","Gm"],"bpm":73,"sig":"4/4","bibleRef":"","tags":["slow","response"],"yt":"","ccli":"4624271","notes":""},
+    {"id":"322","title":"Yahweh","artist":"Hillsong, Reuben Morgan","keys":["G"],"bpm":125,"sig":"4/4","yt":"","ccli":"5409086","bibleRef":"","tags":["slow"]},
+    {"id":"323","title":"Yes And Amen","artist":"Housefires","keys":["G"],"bpm":72,"sig":"4/4","yt":"","ccli":"7048885","bibleRef":"","tags":["slow"],"history":["2026-01-04","2024-11-30","2024-10-27","2024-10-06"]},
+    {"id":"324","title":"Yes I Will","artist":"Vertical Worship","keys":["E"],"bpm":76,"sig":"4/4","yt":"https://www.youtube.com/watch?v=1l9pFyLRmDE","ccli":"7105442","bibleRef":"","tags":["slow"],"history":["2026-08-23","2026-06-07","2026-02-15","2026-01-11","2025-05-11","2025-01-26","2024-03-30"]},
+    {"id":"325","title":"You Are God Alone","artist":"Phillips, Craig & Dean","keys":["Ab"],"bpm":74,"sig":"4/4","yt":"","ccli":"4243463","bibleRef":"","tags":["slow"]},
+    {"id":"326","title":"You Are Holy/Prince of Peace","artist":"Michael W. Smith","keys":["D"],"bpm":118,"sig":"4/4","yt":"","ccli":"3950331","bibleRef":"","tags":["fast"],"history":["2024-03-10"]},
+    {"id":"327","title":"You Are In Control","artist":"Maranatha! Music","keys":["D"],"bpm":82,"sig":"4/4","yt":"","ccli":"2650364","bibleRef":"","tags":["medium"],"history":["2025-01-26","2024-11-03","2024-01-14"]},
+    {"id":"328","title":"You Are My King (Amazing Love)","artist":"Chris Tomlin","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"2456623","bibleRef":"","tags":["slow","response"]},
+    {"id":"329","title":"You Are My Strength","artist":"Hillsong","keys":["D"],"bpm":70,"sig":"4/4","yt":"","ccli":"4869940","bibleRef":"","tags":["slow"]},
+    {"id":"330","title":"You Deserve The Glory","artist":"Terry MacAlmon","keys":["G"],"bpm":66,"sig":"4/4","yt":"","ccli":"3582297","bibleRef":"","tags":["slow","response"],"history":["2026-03-08","2024-06-23","2024-06-16"]},
+    {"id":"331","title":"You Never Let Go","artist":"Matt Redman","keys":["B","F#"],"bpm":76,"sig":"4/4","yt":"https://www.youtube.com/watch?v=NM14VZVu0og","ccli":"4674122","bibleRef":"","tags":["slow"],"history":["2026-08-16"]},
+    {"id":"332","title":"You're Worthy of My Praise","artist":"Shane & Shane","keys":["E","F"],"bpm":100,"sig":"4/4","yt":"","ccli":"487971","bibleRef":"","tags":["medium","response"],"history":["2025-09-28","2024-12-15","2024-02-11"]},
+    {"id":"333","title":"Your Grace is Enough","artist":"Chris Tomlin","keys":["Eb","G"],"bpm":120,"sig":"4/4","yt":"","ccli":"4477026","bibleRef":"","tags":["medium"],"history":["2026-04-12","2025-08-24","2024-08-25","2024-04-14"]},
+    {"id":"334","title":"Your Great Name","artist":"Natalie Grant","keys":["G"],"bpm":73,"sig":"4/4","yt":"","ccli":"5397073","bibleRef":"","tags":["slow"]},
+    {"id":"335","title":"Your Love Never Fails","artist":"Jesus Culture","keys":["Eb"],"bpm":114,"sig":"4/4","yt":"","ccli":"5075213","bibleRef":"","tags":["medium"],"history":["2024-08-04","2024-07-28"]},
+    {"id":"336","title":"Your Presence Is Heaven","artist":"Israel Houghton","keys":["C"],"bpm":72,"sig":"4/4","yt":"","ccli":"6219174","bibleRef":"","tags":["slow","response"],"history":["2024-09-29","2024-09-22","2024-04-07"]}
 ];
+// Shared helpers. Loaded first (filename sorts before 01-state.js) so everything
+// below can rely on these.
+
+// Song data is written into card markup with innerHTML. Titles, artists and
+// notes are free text typed in the edit modal, so anything with < > & " in it
+// either mangles the card or executes. Escape at every injection point.
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// For text placed inside an inline handler, e.g. onclick="setArtistFilter('...')".
+// The browser decodes HTML entities first and only then parses the JS, so the
+// JS-level escaping has to happen first and the HTML escaping second.
+function escapeJsString(value) {
+    return String(value ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r?\n/g, ' ');
+}
+
+// Convenience for the common case: a value going into an inline handler's
+// single-quoted string argument inside a double-quoted HTML attribute.
+function escapeHandlerArg(value) {
+    return escapeHtml(escapeJsString(value));
+}
 
 const STATE = {
     search: '',
@@ -3308,6 +3489,14 @@ function syncRightDrawer() {
             ? (STATE.sortDir === 'asc' ? '✓ Flow ↑ 🕊️' : '✓ Flow ↓ 🔥')
             : 'Flow Sort (BPM) 🕊️';
     }
+
+    // "Sort by Recently Played" overrides the two buttons above. Dim them so it
+    // is clear they are not in effect, but leave them clickable -- tapping one
+    // switches back and clears the checkbox via setSort().
+    const recentToggle = document.getElementById('rd-sort-recent-toggle');
+    const recentOn = STATE.sortBy === 'recent';
+    if (recentToggle) recentToggle.checked = recentOn;
+    [sortAlpha, sortBpm].forEach(b => { if (b) b.style.opacity = recentOn ? '0.45' : ''; });
 
     const rdAdmin = document.getElementById('rd-admin-section');
     if (rdAdmin) rdAdmin.style.display = STATE.appMode === 'T3' ? 'flex' : 'none';
@@ -4517,7 +4706,9 @@ function openEditDetails(id) {
     // Trigger the expansion once the modal is populated
     setTimeout(() => autoExpand(noteInput), 0);
 
-    document.getElementById('editDetailsModal').showModal();
+    // `modal` is this same dialog, so this used to open it twice. Current
+    // browsers no-op the second call, but older WebKit (the iOS versions most
+    // likely to be in the team's phones) throws InvalidStateError there.
     modal.showModal();
 }
 
@@ -4784,6 +4975,11 @@ function showToast(msg, duration = 2200) {
     }, duration);
 }
 
+    // Delay between fading the feed out and swapping its contents in. This was 80ms,
+    // which was two thirds of the ~119ms it took to get 350 cards on screen -- the
+    // build itself is ~39ms. Two frames is enough to read as a crossfade.
+    const FEED_SWAP_DELAY_MS = 32;
+
     function renderFeed() {
         const feed = document.getElementById('songFeed');
         if (feed) {
@@ -4796,10 +4992,13 @@ function showToast(msg, duration = 2200) {
 
             let filtered = [];
 
-            // ... [Keep your existing Filter and Sort Logic exactly as is] ...
-            if (STATE.isSetlistMode) {
-                filtered = STATE.setlist.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
-            } else {
+            // The main feed always shows the library. There used to be a branch here
+            // that swapped it for STATE.setlist while the setlist builder was open,
+            // but STATE.setlist is the legacy store -- STATE.setlists[id].songs
+            // replaced it -- so that branch emptied the feed to "No matches found"
+            // and left it empty after the modal closed. The builder shows the
+            // setlist in its own list, so the branch is gone rather than repaired.
+            {
                 filtered = SONGS.filter(song => {
                     if (STATE.search && STATE.search.trim() !== '') {
                         const term = STATE.search.toLowerCase().trim();
@@ -4865,7 +5064,12 @@ function showToast(msg, duration = 2200) {
                 const micState = getMicState(song.id); // 'active', 'inactive', or 'none'
                 const setlistIcon = micState !== 'none' ? `<span class="mic-indicator ${micState}">🎙️</span>` : '';
 
-                const isFav = (song.tags || []).includes('favorite');
+                // Favourites live in the `favorites` array in localStorage. A
+                // 'favorite' entry in song.tags was the old mechanism, but nothing
+                // ever wrote one, so the star never appeared. Tags are also the
+                // wrong home for this: they get exported into the shared dataset,
+                // which would push one person's favourites onto the whole team.
+                const isFav = favorites.includes(song.id);
                 const favoriteIcon = isFav ? `<span class="fav-indicator">⭐</span>` : '';
                 const isOriginal = song.artist === "ORIGINAL" || (song.tags || []).includes('original');
                 const isExpanded = (STATE.expandedCards || []).includes(song.id);
@@ -4877,17 +5081,17 @@ function showToast(msg, duration = 2200) {
                 // ... [Keep Artist Links and Badge Generation logic as is] ...
                 const rawArtist = Array.isArray(song.artist) ? song.artist.join(', ') : (song.artist || "");
                 const artistNames = rawArtist.split(',').map(n => n.trim());
-                const artistLinks = artistNames.map(name => `<span class="${STATE.artistFilter === name ? 'active-text-filter' : ''}" style="cursor:pointer; text-decoration: underline dotted; text-underline-offset: 3px;" onclick="event.stopPropagation(); setArtistFilter('${name.replace(/'/g, "\\'")}')">${name}</span>`).join(' / ');
-                const keyBadges = (song.keys || []).map(k => `<span class="badge key ${STATE.keys.includes(k) ? 'active' : ''}" onclick="event.stopPropagation(); toggleKeyFilter('${k}')">${k}</span>`).join('');
-                const tagHtml = (song.tags || []).map(t => `<span class="tag ${['fast', 'medium', 'slow'].includes(t) ? `tag-${t}` : `${t}-badge`} ${STATE.tags.includes(t) ? 'active' : ''}" onclick="event.stopPropagation(); toggleTagFilter('${t}')">#${t}</span>`).join('');
+                const artistLinks = artistNames.map(name => `<span class="${STATE.artistFilter === name ? 'active-text-filter' : ''}" style="cursor:pointer; text-decoration: underline dotted; text-underline-offset: 3px;" onclick="event.stopPropagation(); setArtistFilter('${escapeHandlerArg(name)}')">${escapeHtml(name)}</span>`).join(' / ');
+                const keyBadges = (song.keys || []).map(k => `<span class="badge key ${STATE.keys.includes(k) ? 'active' : ''}" onclick="event.stopPropagation(); toggleKeyFilter('${escapeHandlerArg(k)}')">${escapeHtml(k)}</span>`).join('');
+                const tagHtml = (song.tags || []).map(t => `<span class="tag ${['fast', 'medium', 'slow'].includes(t) ? `tag-${escapeHtml(t)}` : `${escapeHtml(t)}-badge`} ${STATE.tags.includes(t) ? 'active' : ''}" onclick="event.stopPropagation(); toggleTagFilter('${escapeHandlerArg(t)}')">#${escapeHtml(t)}</span>`).join('');
                 const safeTagHtml = tagHtml.replace(/onclick="/g, 'onclick="event.stopPropagation(); ');
 
                 const artistUrl = Array.isArray(song.artist) ? song.artist.join(' ') : (song.artist || '');
                 const ytHref = song.yt || `https://www.youtube.com/results?search_query=${encodeURIComponent(song.title + ' ' + artistUrl)}`;
-                let actionHtml = !isOriginal ? `<a href="${ytHref}" target="_blank" class="action-btn yt" onclick="event.stopPropagation()">▶ YouTube</a>` : '';
-                if (song.ccli && song.ccli !== 'ORIGINAL') actionHtml += `<a href="https://songselect.ccli.com/Songs/${song.ccli}" target="_blank" class="action-btn ccli" onclick="event.stopPropagation()">♬♪ CCLI</a>`;
-                actionHtml += `<button class="action-btn edit" onclick="event.stopPropagation(); openEditModal('${song.id}')">✎ Edit</button>`;
-                let notesBtn = song.notes ? `<button class="action-btn notes" onclick="event.stopPropagation(); toggleNotes('notes-${song.id}')">📝 Notes</button>` : '';
+                let actionHtml = !isOriginal ? `<a href="${escapeHtml(ytHref)}" target="_blank" rel="noopener noreferrer" class="action-btn yt" onclick="event.stopPropagation()">▶ YouTube</a>` : '';
+                if (song.ccli && song.ccli !== 'ORIGINAL') actionHtml += `<a href="https://songselect.ccli.com/Songs/${encodeURIComponent(song.ccli)}" target="_blank" rel="noopener noreferrer" class="action-btn ccli" onclick="event.stopPropagation()">♬♪ CCLI</a>`;
+                actionHtml += `<button class="action-btn edit" onclick="event.stopPropagation(); openEditModal('${escapeHandlerArg(song.id)}')">✎ Edit</button>`;
+                let notesBtn = song.notes ? `<button class="action-btn notes" onclick="event.stopPropagation(); toggleNotes('notes-${escapeHandlerArg(song.id)}')">📝 Notes</button>` : '';
 
                 // T1 Mode Template
                 if (STATE.appMode === 'T1') {
@@ -4898,7 +5102,7 @@ function showToast(msg, duration = 2200) {
                     <div class="card-main-wrapper" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 12px;">
                         <div class="t1-left-content" style="flex: 1; min-width: 0;">
                             <div class="t1-header">
-                                <span class="song-title">${song.title}${setlistIcon}${favoriteIcon}${freqIcon}</span>                             
+                                <span class="song-title">${escapeHtml(song.title)}${setlistIcon}${favoriteIcon}${freqIcon}</span>                             
                                 <span class="song-artist">— ${artistLinks}</span>
                             </div>
                             <div class="t1-drawer" style="${isExpanded ? 'display: flex;' : 'display: none;'} justify-content: space-between; align-items: stretch; margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px; gap: 15px;">
@@ -4906,9 +5110,9 @@ function showToast(msg, duration = 2200) {
                                     <div class="specs-line" style="margin-bottom: 8px; display: flex; gap: 4px; flex-wrap: wrap;">
                                         ${keyBadges}
                                         ${song.bpm ? `<span class="badge bpm ${STATE.bpmActive && STATE.bpmValue === song.bpm ? 'active' : ''}" style="cursor:pointer;" onclick="event.stopPropagation(); toggleBpm(false, ${song.bpm})">${song.bpm} BPM</span>` : ''}
-                                        <span class="badge ${STATE.sigFilter === song.sig ? 'active' : ''}">${song.sig}</span>
+                                        <span class="badge ${STATE.sigFilter === song.sig ? 'active' : ''}">${escapeHtml(song.sig)}</span>
                                         ${micState !== 'none' ? `<span class="mic-indicator active">🎤</span>` : ''}
-                                        <span class="badge" style="background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold);">${statsString}</span>
+                                        <span class="badge stats-badge">${statsString}</span>
                                     </div>
                                     <div class="tags-line">${safeTagHtml}</div>
                                 </div>
@@ -4923,7 +5127,7 @@ function showToast(msg, duration = 2200) {
                             <div class="specs-line" style="margin:0;">${keyBadges}</div>
                         </div>
                     </div>
-                    ${song.notes ? `<div id="notes-${song.id}" class="notes-content" style="display:none; width:100%; margin-top:10px; border-top: 1px dashed #ccc; padding-top: 8px;">${song.notes}</div>` : ''}
+                    ${song.notes ? `<div id="notes-${escapeHtml(song.id)}" class="notes-content" style="display:none; width:100%; margin-top:10px; border-top: 1px dashed #ccc; padding-top: 8px;">${escapeHtml(song.notes)}</div>` : ''}
                 `;
                 }
                 // T2 Mode Template
@@ -4931,18 +5135,19 @@ function showToast(msg, duration = 2200) {
                     card.innerHTML = `
                     <div class="card-top" style="display:flex; align-items:stretch;">
                         <div class="card-content" style="flex:1;">
-                            <h3 class="song-title">${song.title}${setlistIcon}${favoriteIcon}${freqIcon}</h3>
+                            <h3 class="song-title">${escapeHtml(song.title)}${setlistIcon}${favoriteIcon}${freqIcon}</h3>
                             <p class="song-artist">— ${artistLinks}</p>
                             <div class="specs-line">
                                 ${keyBadges} 
                                 <span class="badge bpm ${STATE.bpmActive && STATE.bpmValue === song.bpm ? 'active' : ''}" style="cursor:pointer;" onclick="event.stopPropagation(); toggleBpm(false, ${song.bpm})">${song.bpm || '???'} BPM</span>
-                                <span class="badge sig">${song.sig}</span>
+                                <span class="badge sig">${escapeHtml(song.sig)}</span>
                                 <span class="badge" style="background: var(--surface); color: var(--ink-mid);">${statsString}</span>
                             </div>
                             <div class="tags-line">${tagHtml}</div>
                         </div>
                         <div class="action-bar">${actionHtml}${notesBtn}</div>
                     </div>
+                    ${song.notes ? `<div id="notes-${escapeHtml(song.id)}" class="notes-content" style="display:none; width:100%; margin-top:10px; border-top: 1px dashed #ccc; padding-top: 8px;">${escapeHtml(song.notes)}</div>` : ''}
                 `;
                 }
 
@@ -4956,7 +5161,7 @@ function showToast(msg, duration = 2200) {
             const countEl = document.getElementById('song-count');
             if (countEl) countEl.innerText = filtered.length === 0 ? "No matches found" : `${filtered.length} songs`;
             if (feed) feed.style.opacity = '1';
-        }, 80);
+        }, FEED_SWAP_DELAY_MS);
     }
 
 DOMElements.feed.addEventListener('click', (e) => {
@@ -5067,6 +5272,10 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.blur(); // Retracts mobile keyboard on Enter/Search
         }
     });
+    // Every keystroke used to rebuild the whole feed, so typing a four-letter word
+    // ran four full renders. Coalesce them: the pill updates immediately so the
+    // clear button still feels instant, only the expensive redraw waits.
+    let searchDebounce;
     searchInput.addEventListener('input', function () {
         const term = this.value.trim().toLowerCase();
 
@@ -5077,7 +5286,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             searchPill.classList.remove('has-search');
         }
-        renderFeed(); 
+
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(renderFeed, 150);
     });
     // 3. Draw Initial Feed
     renderFeed();
@@ -5143,7 +5354,13 @@ function saveSong() {
         return '';
     }).filter(k => k).sort();
 
+    // Merge onto the existing record. The edit form only covers 11 fields, so
+    // spreading the original first preserves everything it does not touch --
+    // most importantly `history`, which is irreplaceable if lost.
+    const existing = SONGS.find(s => s.id === id) || {};
+
     const newSong = {
+        ...existing,
         id: id,
         title: document.getElementById('editTitle').value,
         artist: document.getElementById('editArtist').value,
@@ -5447,6 +5664,23 @@ function setSort(type) {
     renderFeed();    
 }
 
+// "Sort by Recently Played" in the right drawer. It overrides the alphabetical
+// and flow-sort buttons; unchecking restores whichever of those was last active.
+function toggleRecentSort(isChecked) {
+    if (isChecked) {
+        if (STATE.sortBy !== 'recent') STATE.sortPrev = { by: STATE.sortBy, dir: STATE.sortDir };
+        STATE.sortBy = 'recent';
+        STATE.sortDir = 'desc';   // most recently played first
+    } else {
+        const prev = STATE.sortPrev || { by: 'alpha', dir: 'asc' };
+        STATE.sortBy = prev.by;
+        STATE.sortDir = prev.dir;
+    }
+    updateSortUI();
+    syncRightDrawer();
+    renderFeed();
+}
+
 function updateSortUI() {
     // Right drawer sort buttons
     const rdAlpha = document.getElementById('rd-sort-alpha');
@@ -5592,10 +5826,11 @@ function lpCopyInfo() {
     if (song.yt) copyString += ` | YT: ${song.yt}`;
     if (song.ccli) copyString += ` | CCLI: ${song.ccli}`;
 
-    navigator.clipboard.writeText(copyString).then(() => {
-        // Maybe a toast notification instead of a jarring alert?
-        console.log("Copied to clipboard");
-    });
+    // Use the shared copy engine rather than navigator.clipboard directly:
+    // that API is undefined outside a secure context, which is exactly how this
+    // app is normally opened (file:// from a download, or plain http). A bare
+    // call throws there and the copy silently does nothing.
+    copyToClipboard(copyString);
 
     closeLongPress();
 }
